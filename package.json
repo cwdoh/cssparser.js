@@ -1,0 +1,55 @@
+{
+    "name": "cssparser",
+    "author": {
+    	"name":"Chang W. Doh",
+    	"email": "changwook.doh@gmail.com",
+    	"site": "http://moonchild.pe.kr"
+    },
+    "description": "parsing CSS document and transform to JSON format",
+    "keywords": [
+        "css",
+        "parser",
+        "json",
+        "validation",
+        "transform"
+    ],
+    "version": "0.2.0",
+    "preferGlobal": true,
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/cwdoh/cssparser.js.git"
+    },
+    "bugs": {
+        "url": "http://github.com/cwdoh/cssparser.js/issues"
+    },
+    "main": "lib/cssparser.js",
+    "bin": {
+        "cssparser": "lib/cli.js"
+    },
+    "engines": {
+        "node": ">= 0.6"
+    },
+    "dependencies": {
+        "nomnom": ">= 1.5.x",
+        "JSV": ">= 4.0.x"
+    },
+    "devDependencies": {
+		"grunt": "~0.4.x",
+		"jison": ">= 0.4.4",
+		"grunt-contrib-jshint": "~0.1.x",
+		"grunt-contrib-uglify": "~0.1.2",
+		"grunt-contrib-copy": "~0.4.0",
+		"grunt-contrib-yuidoc": "~0.4.0",
+		"grunt-contrib-clean": "~0.4.0",
+		"grunt-contrib-coffee": "~0.6.0"
+    },
+    "scripts": {
+        "test": "node test/all-tests.js"
+    },
+    "homepage": "http://cwdoh.github.io/cssparser.js/",
+    "optionalDependencies": {},
+    "license": {
+		 "type": "MIT",
+		 "url": "https://github.com/cowboy/grunt-jquery-example/blob/master/LICENSE-MIT"
+	}
+}
