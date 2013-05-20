@@ -61,7 +61,6 @@ module.exports = (grunt) ->
 					"doc"
 				]
 
-	grunt.loadNpmTasks 'grunt-contrib-jshint'
 	grunt.loadNpmTasks 'grunt-contrib-concat'
 	grunt.loadNpmTasks 'grunt-contrib-uglify'
 	grunt.loadNpmTasks 'grunt-contrib-copy'
@@ -75,24 +74,50 @@ module.exports = (grunt) ->
 	grunt.registerTask 'gitSHA1', 'git hashes for output', ->
 		done = this.async()
 		global = grunt.config.get( 'global' )
-		child_process.exec global.gitSHA1, ( err, stdout, stderr ) ->
-			global.gitSHA1 = stdout
-			grunt.config.set( 'global', global )
-			done();
-			
+
+		try
+			child_process.exec global.gitSHA1, ( err, stdout, stderr ) ->
+				global.gitSHA1 = stdout
+				grunt.config.set 'global', global
+				grunt.log.writeln 'gitSHA1 = ' + global.gitSHA1.toString().blue
+				done()
+		catch e
+			grunt.log.error()
+			grunt.verbose.error e
+			grunt.fail.warn 'Operation failed.'
+		
 	# build task
 	grunt.registerTask 'build', 'build parser from jison', ->
 		command = "jison src/cssparser.y src/css.l -o lib/cssparser.js"
 		done = this.async()
-		child_process.exec command, ( err, stdout, stderr ) ->
-			done();
+
+		grunt.log.write 'Building parser...'
+
+		try
+			child_process.exec command, ( err, stdout, stderr ) ->
+				grunt.log.ok()
+				done()
+		catch e
+			grunt.log.error()
+			grunt.verbose.error e
+			grunt.fail.warn 'Building operation failed.'
+
 	
 	# deploy
 	grunt.registerTask 'deploy', 'deploy site', ->
 		command = "cd ../cssparser-pages && git commit -a -m 'deploy site updates' && git push origin gh-pages"
 		done = this.async()
-		child_process.exec command, ( err, stdout, stderr ) ->
-			done();
+		
+		grunt.log.write 'deploy project site...'
+		
+		try
+			child_process.exec command, ( err, stdout, stderr ) ->
+				grunt.log.ok()
+				done()
+		catch e
+			grunt.log.error()
+			grunt.verbose.error e
+			grunt.fail.warn 'Deploy failed.'
 	
 	# Default task.
 	grunt.registerTask 'default', [
