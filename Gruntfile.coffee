@@ -27,7 +27,7 @@ module.exports = (grunt) ->
 				dest: 'lib/cssparser.js'
 			site:
 				src: '<%= concat.cssparser.dest %>',
-				dest: 'webc/cssparser.js'
+				dest: 'web/cssparser.js'
 		copy:
 			cssparser:
 				src: 'lib/cssparser.js'
