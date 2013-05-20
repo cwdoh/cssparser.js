@@ -15,8 +15,6 @@ stylesheet
   		if ( $5 )
   			$$["rulelist"]	= $5;
 
-		console.log( JSON.stringify( $$, null, 4 ) );
-
   		return $$;
   	%}
   ;
