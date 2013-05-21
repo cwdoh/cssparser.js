@@ -310,7 +310,7 @@ keyframe_list
   |								-> []
   ;
 keyframe
-  : keyframe_offset_list '{' wempty declaration_list '}' wempty			-> { "offset": $1, "declarations": $4 }
+  : keyframe_offset_list '{' wempty declaration_list '}' wempty			-> { "type": "keyframe", "offset": $1, "declarations": $4 }
   ;
 keyframe_offset_list
   : keyframe_offset wempty								-> $1

@@ -6,7 +6,7 @@ cssparser.js is a parser that generates json matched with source css structure.
 ##Description
 
 * License: MIT license - [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php)
-* Author : Changwook Doh - changwook.doh@gmail.com
+* Author : Chang W. Doh
 
 ##Demo
 
@@ -90,45 +90,47 @@ There are 3 types of JSON format.
 	stylesheet_object =
 	
 		+ charset [Object]
-		
+
 		+ imports [Array]
-			+ ImportRule [Object]
-				+ type : "import" : []// URI or string
+			+ [Object(Import)]
+				+ type : "import" : [DOMString]// URI or string
 				+ mediaquries [DOMString] : // if query exist
-				
+
 		+ namespaces [Array]
 			+ namespace [DOMString] : // URI or string 
 			+ prefix [DOMString] : // if prefix exist
-			
+
 		+ rulelist [Array]
 			+ [Object(Media)]
 				+ type [DOMString] : "media"
 				+ mediaqueries [DOMString] : // query string
 				+ children [Array] : // nested rulelist
 					+ rulelist // …
-					
+
 			+ [Object(FontFace)]
 				+ type [DOMString] : "fontface"
 				+ declarations [Object] : // declarations
-			
+
 			+ [Object(Page)]
 				+ type [DOMString] : "page"
 				+ id [DOMString] : // identifier
 				+ pseudo [DOMString] : // pseudo string
 				+ declarations [Object] : // declarations
-			
+
 			+ [Object(Style)]
 				+ type [DOMString] : "style"
 				+ selector [DOMString] : // selector string
 				+ declarations [Object] : // declarations
-				
+
 			+ [Object(Keyframes)]
 				+ type [DOMString] : "keyframes"
 				+ id [DOMString] : // identifier
 				+ prefix [DOMString] : // vendor prefix e.g. -moz-, -webkit-, -o-, …
 				+ keyframes [Array]
-					+ offset [DOMString] : // offset string
-					+ declarations [Object] : // declarations
+					+ [Object(keyframe)]
+						+ type [DOMString] : "keyframe"
+						+ offset [DOMString] : // offset string
+						+ declarations [Object] : // declarations
 
 ###Type 'deep'
 
