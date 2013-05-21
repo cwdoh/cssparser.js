@@ -6,7 +6,7 @@ cssparser.js is a parser that generates json matched with source css structure.
 ##Description
 
 * License: MIT license - [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php)
-* Author : Changwook Doh - changwook.doh@gmail.com
+* Author : Chang W. Doh
 
 ##Demo
 
