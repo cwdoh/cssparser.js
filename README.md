@@ -75,13 +75,16 @@ You can generate javascript object from your javascript module.
 
 ##JSON Structure
 
-There's three level of JSON structure for CSS.
+There are 3 types of JSON format.
 
-* simple - most simple. this's simply consist of just key & value.
-* deep - more detailed then simple mode. this has more informations of selector, terms, expression, queries, …
-* atomic - most detailed. 'atomic' JSON has all pieces of each key & values in CSS. e.g. length has numeric value & its unit like "100px" -> { "value": 100, "unit": "px" }
+* simple - most simple.
+	* simply consist of just key & value.
+* deep - more detailed then simple mode.
+	* this includes more informations of selector, terms, expression, queries, …
+* atomic - most detailed. 'atomic' JSON has all pieces of each key & values in CSS.
+	* e.g. length has numeric value & its unit like "100px" -> { "value": 100, "unit": "px" }
 
-###Mode 'simple'
+###Type 'simple'
 
 
 	stylesheet_object =
@@ -127,19 +130,19 @@ There's three level of JSON structure for CSS.
 					+ offset [DOMString] : // offset string
 					+ declarations [Object] : // declarations
 
-###Mode 'deep'
+###Type 'deep'
 
 Not yet.
 
-###Mode 'atomic'
+###Type 'atomic'
 
 Not yet.
 
 ##Example
 
-following is tested result with some rulesets at [http://css3please.com](http://css3please.com)
+Example is tested with rulesets of [http://css3please.com](http://css3please.com)
 
-	node cssparser ./test/sample.css -console
+	cssparser example/test.css --console -i 4
 
 ###Input
 

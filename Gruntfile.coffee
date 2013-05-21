@@ -34,7 +34,7 @@ module.exports = (grunt) ->
 				dest: 'web/cssparser.js'
 			site:
 				src: 'web/cssparser.js'
-				dest: '../cssparser-pages/cssparser.js'
+				dest: '../cssparser.js-pages/demo/cssparser.js'
 
 		yuidoc:
 			compile:
@@ -105,7 +105,7 @@ module.exports = (grunt) ->
 	
 	# deploy
 	grunt.registerTask 'deploy', 'deploy site', ->
-		command = "cd ../cssparser-pages && git commit -a -m 'deploy site updates' && git push origin gh-pages"
+		command = "cd ../cssparser.js-pages && git commit -a -m 'deploy site updates' && git push origin gh-pages"
 		done = this.async()
 		
 		grunt.log.write 'deploy project site...'
@@ -135,13 +135,12 @@ module.exports = (grunt) ->
 	
 	grunt.registerTask 'release', [
 		'default'
-		'uglify:cssparser'
+		'uglify'
 	]
 
 	grunt.registerTask 'all', [
 		'default'
 		'yuidoc'
-		'uglify:site'
 		'copy:site'
 		'deploy'
 	]

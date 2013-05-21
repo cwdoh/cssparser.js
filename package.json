@@ -13,7 +13,7 @@
         "validation",
         "transform"
     ],
-    "version": "0.2.0",
+    "version": "0.2.1",
     "preferGlobal": true,
     "repository": {
         "type": "git",
@@ -30,7 +30,8 @@
         "node": ">= 0.6"
     },
     "dependencies": {
-        "nomnom": ">= 1.5.x"
+        "nomnom": ">= 1.5.x",
+        "colors": ">= 0.6.0"
     },
     "devDependencies": {
 		"grunt": "~0.4.x",
@@ -46,6 +47,6 @@
     "optionalDependencies": {},
     "license": {
 		 "type": "MIT",
-		 "url": "https://github.com/cowboy/grunt-jquery-example/blob/master/LICENSE-MIT"
+		 "url": "http://www.opensource.org/licenses/mit-license.php"
 	}
 }
