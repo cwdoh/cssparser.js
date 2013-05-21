@@ -1,15 +1,18 @@
 cssparser.js
-========
+======
 
 cssparser.js is a parser that generates json matched with source css structure.
 
 ##Description
-========
+
 * License: MIT license - [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php)
 * Author : Changwook Doh - changwook.doh@gmail.com
 
+##Demo
+
+* [http://cwdoh.github.io/cssparser.js/demo/CSS_stringify.html](//cwdoh.github.io/cssparser.js/demo/CSS_stringify.html)
+
 ##Dependency
-========
 
 Just want to use cssparser.js? Nothing needed.
 
@@ -19,10 +22,9 @@ If want generating parser, install 'jison' before it.
 
 
 ##Usage
-========
 
 ###from Command-line
-========
+
 
 First of all, you should install cssparser.
 
@@ -42,7 +44,6 @@ Then execute and you can generate JSON file from command-line.
 
 
 ###from CommonJS Module
-========
 
 You can generate javascript object from your javascript module.
 
@@ -56,9 +57,8 @@ You can generate javascript object from your javascript module.
 	var json = parser.parse( cssText );
 
 
-
 ##Generating parser from source
-========
+
 ###Getting jison & source
 
 	$ npm install jison -g
@@ -74,7 +74,6 @@ You can generate javascript object from your javascript module.
 
 
 ##JSON Structure
-========
 
 There's three level of JSON structure for CSS.
 
@@ -83,7 +82,7 @@ There's three level of JSON structure for CSS.
 * atomic - most detailed. 'atomic' JSON has all pieces of each key & values in CSS. e.g. length has numeric value & its unit like "100px" -> { "value": 100, "unit": "px" }
 
 ###Mode 'simple'
-========
+
 
 	stylesheet_object =
 	
@@ -129,15 +128,15 @@ There's three level of JSON structure for CSS.
 					+ declarations [Object] : // declarations
 
 ###Mode 'deep'
-========
+
 Not yet.
 
 ###Mode 'atomic'
-========
+
 Not yet.
 
 ##Example
-========
+
 following is tested result with some rulesets at [http://css3please.com](http://css3please.com)
 
 	node cssparser ./test/sample.css -console
@@ -295,7 +294,6 @@ following is tested result with some rulesets at [http://css3please.com](http://
 	}
 
 ##To do list
-========
 
 * Parsing & generating options like simple JSON expression or more detailed.
 * Error recovery for input css.
