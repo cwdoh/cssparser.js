@@ -129,9 +129,8 @@ media_combinator
   | whitespace			-> ' '
   ;
 media_query
-  : computable_term	-> $1
-  | string_term		-> $1
-  |					-> ""
+  : expr	-> $1
+  |			-> ""
   ;
 page
   : PAGE_SYM wempty page_ident pseudo_page wempty '{' wempty declaration_list '}' wempty		->	{ "id": $3, "pseudo": $4, "declarations": $8 }

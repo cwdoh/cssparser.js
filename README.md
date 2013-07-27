@@ -298,6 +298,16 @@ Example is tested with rulesets of [http://css3please.com](http://css3please.com
 		]
 	}
 
+##Change log
+
+* 0.2.0 - May 20th, 2013
+	* Initial release of cssparser.js.
+* 0.2.1 - May 21st, 2013
+	* Update grunt, dependencies, cli options & output message
+	* Add 'keyframe' type at child node of keyframes
+* 0.2.2 - July 27th, 2013
+	* Add ratio type expression with '/'. thanks to Mohsen Heydari.
+
 ##To do list
 
 * Parsing & generating options like simple JSON expression or more detailed.
