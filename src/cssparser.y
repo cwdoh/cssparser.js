@@ -220,14 +220,26 @@ declaration_list
   	%{
   		$$ = {};
   		if ( $1 !== null ) {
-  			$$[ $1[0] ] = $1[1];
+        if(!$$[ $1[0] ]){
+          $$[ $1[0] ] = $1[1];
+        } else if(Object.prototype.toString.call($$[ $1[0] ]) === '[object Array]') {
+          $$[ $1[0] ].push($1[1]);
+        } else {
+          $$[ $1[0] ] = [ $$[ $1[0] ], $1[1] ];
+        }
   		}
   	%}
   | declaration_list declaration_parts
   	%{
   		$$ = $1;
   		if ( $2 !== null ) {
-	  		$$[ $2[0] ] = $2[1];
+        if(!$$[ $2[0] ]){
+          $$[ $2[0] ] = $2[1];
+        } else if(Object.prototype.toString.call($$[ $2[0] ]) === '[object Array]') {
+          $$[ $2[0] ].push($2[1]);
+        } else {
+          $$[ $2[0] ] = [ $$[ $2[0] ], $2[1] ];
+        }
 	  	}
   	%}
   ;
