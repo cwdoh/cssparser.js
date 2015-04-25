@@ -3,9 +3,9 @@
     "author": {
     	"name":"Chang W. Doh",
     	"email": "changwook.doh@gmail.com",
-    	"site": "http://moonchild.pe.kr"
+    	"site": "http://www.cwdoh.com"
     },
-    "description": "parsing CSS document and transform to JSON format",
+    "description": "parsing CSS document and transforming to JSON format",
     "keywords": [
         "css",
         "parser",
