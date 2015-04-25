@@ -171,7 +171,7 @@ combinator
   | /* empty */					-> ""
   ;
 simple_selector
-  : simple_selector_atom_list wempty					-> $1
+  : simple_selector_atom_list whitespace					-> $1 + " "
   | element_name simple_selector_atom_list wempty		-> $1 + $2
   ;
 simple_selector_atom_list
