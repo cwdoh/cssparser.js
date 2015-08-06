@@ -102,7 +102,7 @@ general_list
   		$$ = $1;
   		$$.push( $2 );
   	%}
-  |	-						> null
+  |							-> null
   ;
 general_item
   : ruleset					-> $1
