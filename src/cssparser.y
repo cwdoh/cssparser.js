@@ -391,7 +391,7 @@ at_rule_page
 
 at_rule_page_frontpart
   : AT_PAGE                   -> atRule($1, null)
-  | AT_PAGE PseudoClassList   -> atRule($1, null, 'pseudoClasses', $2)
+  | AT_PAGE SelectorPseudoClassList   -> atRule($1, null, 'pseudoClasses', $2)
   ;
 
 at_rule_document
@@ -552,9 +552,9 @@ SelectorCombinator
   ;
 Selector
   : ASTERISK            -> selectorComponent(UNIVERSAL_SELECTOR, $1)
-  | AttrSelector        -> selectorComponent(ATTR_SELECTOR, $1)
-  | PseudoClass         -> selectorComponent(PSEUDO_CLASS, $1)
-  | PseudoElement       -> selectorComponent(PSEUDO_ELEMENT, $1)
+  | SelectorAttr        -> selectorComponent(ATTR_SELECTOR, $1)
+  | SelectorPseudoClass         -> selectorComponent(PSEUDO_CLASS, $1)
+  | SelectorPseudoElement       -> selectorComponent(PSEUDO_ELEMENT, $1)
   | HASH_STRING         -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
   | HEXA_NUMBER         -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
   | ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight(), selectorCombinator("DESCENDANT", $1))
@@ -564,8 +564,8 @@ Selector
   | SELECTOR_CLASS_WITH_WHITESPACE  -> selectorComponent(CLASS_SELECTOR, $1.trimRight(), selectorCombinator("DESCENDANT", " "))
   | SELECTOR_ID_WITH_WHITESPACE     -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1.trimRight() }, selectorCombinator("DESCENDANT", " "))
   ;
-AttrSelector
-  : LEFT_SQUARE_BRACKET IDENT AttrSelectorOperator GenericVal RIGHT_SQUARE_BRACKET
+SelectorAttr
+  : LEFT_SQUARE_BRACKET IDENT SelectorAttrOperator GenericVal RIGHT_SQUARE_BRACKET
     %{
       $$ = {
         attribute: $2,
@@ -580,7 +580,7 @@ AttrSelector
       }
     }%
   ;
-AttrSelectorOperator
+SelectorAttrOperator
   : INCLUDE_MATCH       -> defVariable('include', $1)
   | DASH_MATCH	        -> defVariable('dash', $1)
   | PREFIX_MATCH        -> defVariable('prefix', $1)
@@ -588,7 +588,7 @@ AttrSelectorOperator
   | SUBSTRING_MATCH     -> defVariable('substring', $1)
   | ASSIGN_MARK         -> defVariable('equal', $1)
   ;
-PseudoElement
+SelectorPseudoElement
   : COLON COLON IdentVal
     %{
       $$ = $3
@@ -597,11 +597,11 @@ PseudoElement
     }%
   ;
 
-PseudoClassList
-  : PseudoClass                   -> [defVariable(PSEUDO_CLASS, $1)]
-  | PseudoClassList PseudoClass   -> merge($1, defVariable(PSEUDO_CLASS, $1))
+SelectorPseudoClassList
+  : SelectorPseudoClass                   -> [defVariable(PSEUDO_CLASS, $1)]
+  | SelectorPseudoClassList SelectorPseudoClass   -> merge($1, defVariable(PSEUDO_CLASS, $1))
   ;
-PseudoClass
+SelectorPseudoClass
   : COLON IDENT               -> { fullQuailfied: $1 + $2, name: $2 }
   | COLON PseudoClassFunc     -> { fullQuailfied: $1 + $2.name, name: $2 }
   ;
@@ -747,7 +747,7 @@ IDENT
   | SELECTOR_TYPE_WITH_WHITESPACE   -> $1.trimRight()
   ;
 ComponentName
-  : IDENT                           -> { name: $1, fullQuailfied: $1 }
+  : IDENT                           -> vendorPrefixIdVal($1)
   ;
 
 FuncVal

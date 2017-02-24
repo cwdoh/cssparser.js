@@ -87,7 +87,6 @@ character_i                 "i"|"I"
 
 \=                                  {return _token('ASSIGN_MARK');}
 \\									{return _token('QUOTATION_MARK');}
-/*[#]                                 {return _token('HASH');}*/
 \#									{return _token('NUMBER_SIGN');}
 \$									{return _token('DOLLAR_SIGN');}
 \‘									{return _token('APOSTROPHE');}
@@ -135,7 +134,6 @@ character_i                 "i"|"I"
 {ident}{whitespace}+                {return _token('SELECTOR_TYPE_WITH_WHITESPACE');}
 
 {ident}                             {return _token('GENERAL_IDENT');}
-
 
 "!important"                        {return _token('IMPORTANT');}
 
