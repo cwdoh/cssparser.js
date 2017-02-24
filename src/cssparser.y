@@ -27,6 +27,7 @@
     DECLARATION = "DECLARATION",
 
     CALC_EXPRESSION = "CALC_EXPRESSION",
+    EXPRESSION = "EXPRESSION",
 
     MEDIA_TYPE = "MEDIA_TYPE",
 
@@ -557,6 +558,7 @@ Selector
   | SelectorPseudoElement       -> selectorComponent(PSEUDO_ELEMENT, $1)
   | HASH_STRING         -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
   | HEXA_NUMBER         -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
+  | FULL_STOP IDENT     -> selectorComponent(CLASS_SELECTOR, { type: 'HASH', value: $1 + $2 })
   | ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight(), selectorCombinator("DESCENDANT", $1))
   | GENERAL_IDENT                   -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1), selectorCombinator("DESCENDANT", $1))
   | VENDOR_PREFIX_IDENT             -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1), selectorCombinator("DESCENDANT", $1))
@@ -761,5 +763,15 @@ FUNCTION
 FuncParams
   : DeclarationPropVals                    -> [$1]
   | FuncParams COMMA DeclarationPropVals   -> merge($1, $3)
+  | IDENT FuncParamOperator GenericNumericVal
+   %{
+      $$ = [{
+        type: EXPRESSION,
+        operator: $2,
+        rightHandSide: $3
+      }]
+    }%
   ;
-
+FuncParamOperator
+  : ASSIGN_MARK     -> { type: 'ASSIGN_OPERATOR', value: $1 }
+  ;
