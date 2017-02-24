@@ -618,6 +618,7 @@ PseudoClassFuncParams
   ;
 PseudoClassFuncParam
   : SelectorGroupVal
+  | SelectorPseudoClassList
   | PseudoClassFuncParam_an_plus_b
   ;
 PseudoClassFuncParam_an_plus_b
