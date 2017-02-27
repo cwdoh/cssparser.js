@@ -26,6 +26,8 @@
     DECLARATIONS = "DECLARATIONS",
     DECLARATION = "DECLARATION",
 
+    ATTRIBUTE = "ATTRIBUTE",
+
     CALC_EXPRESSION = "CALC_EXPRESSION",
     EXPRESSION = "EXPRESSION",
 
@@ -234,7 +236,7 @@
     }
   }
 
-  const demensionUnitVal = function(val) {
+  const dimensionUnitVal = function(val) {
     return unitVal(DIMENSION, val)
   }
 
@@ -374,7 +376,7 @@ keyframes_block_list
   | keyframes_block_list keyframes_block  -> merge($1, $2)
   ;
 keyframes_block
-  : keyframes_selector Declarations       -> { type: KEYFRAMES_BLOCK, selector: $1, declarations: $2 }
+  : keyframes_selector Declarations       -> { type: KEYFRAMES_BLOCK, selector: $1, value: $2 }
   ;
 keyframes_name
   : IdentVal
@@ -387,7 +389,7 @@ keyframes_selector
 
 /* TODO: I don't understand @page rules deeply. */
 at_rule_page
-  : at_rule_page_frontpart Declarations   -> addProp($1, 'declarations', $2)
+  : at_rule_page_frontpart Declarations   -> addProp($1, 'value', $2)
   ;
 
 at_rule_page_frontpart
@@ -410,7 +412,7 @@ AtDocumentFuncVal
   ;
 
 at_rule_font_face
-  : AT_FONT_FACE Declarations   -> { type: FONT_FACE, declarations: $2 }
+  : AT_FONT_FACE Declarations   -> { type: FONT_FACE, value: $2 }
   ;
 
 /* TODO: I don't understand @supports rules deeply. */
@@ -507,7 +509,7 @@ css_rule
         $$ = {
           type: CSS_RULE,
           selectors: $1,
-          declarations: $2
+          value: $2
         }
     }%
   ;
@@ -538,13 +540,35 @@ DeclarationComponent
  */
 
 SelectorList
-  : SelectorGroup                        -> defVariable(SELECTOR, removeTailingSelectorCombinator($1))
+  : SelectorGroup                        -> merge(defVariable(SELECTOR, removeTailingSelectorCombinator($1)), [])
   | SelectorList COMMA SelectorGroup     -> merge($1, defVariable(SELECTOR, removeTailingSelectorCombinator($3)))
   ;
 SelectorGroup
   : Selector
-  | SelectorGroup Selector                        -> merge($1, $2)
-  | SelectorGroup SelectorCombinator Selector     -> merge($1, [$2, $3])
+  | Selector SelectorGroup
+    %{
+      $$ = $1
+      $$.nextSelector = $2
+    }%
+  | Selector SelectorCombinator SelectorGroup
+    %{
+      $$ = $1
+      $$.nextSelector = $2
+      $$.nextSelector.nextSelector = $3
+    }%
+  | DescendantSelector
+  | DescendantSelector SelectorGroup
+    %{
+      $$ = $1
+      $$.nextSelector = selectorCombinator("DESCENDANT", " ")
+      $$.nextSelector.nextSelector = $2
+    }%
+  | DescendantSelector SelectorCombinator SelectorGroup
+    %{
+      $$ = $1
+      $$.nextSelector = $2
+      $$.nextSelector.nextSelector = $3
+    }%
   ;
 SelectorCombinator
   : GREATER_THAN_SIGN   -> selectorCombinator("CHILD", $1)
@@ -552,34 +576,46 @@ SelectorCombinator
   | TILDE               -> selectorCombinator("GENERAL_SIBLING", $1)
   ;
 Selector
-  : ASTERISK            -> selectorComponent(UNIVERSAL_SELECTOR, $1)
-  | SelectorAttr        -> selectorComponent(ATTR_SELECTOR, $1)
-  | SelectorPseudoClass         -> selectorComponent(PSEUDO_CLASS, $1)
-  | SelectorPseudoElement       -> selectorComponent(PSEUDO_ELEMENT, $1)
-  | HASH_STRING         -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
-  | HEXA_NUMBER         -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
-  | FULL_STOP IDENT     -> selectorComponent(CLASS_SELECTOR, { type: 'HASH', value: $1 + $2 })
-  | ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight(), selectorCombinator("DESCENDANT", $1))
-  | GENERAL_IDENT                   -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1), selectorCombinator("DESCENDANT", $1))
-  | VENDOR_PREFIX_IDENT             -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1), selectorCombinator("DESCENDANT", $1))
-  | SELECTOR_TYPE_WITH_WHITESPACE   -> selectorComponent(TYPE_SELECTOR, $1.trimRight(), selectorCombinator("DESCENDANT", " "))
-  | SELECTOR_CLASS_WITH_WHITESPACE  -> selectorComponent(CLASS_SELECTOR, $1.trimRight(), selectorCombinator("DESCENDANT", " "))
-  | SELECTOR_ID_WITH_WHITESPACE     -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1.trimRight() }, selectorCombinator("DESCENDANT", " "))
+  : ASTERISK                -> selectorComponent(UNIVERSAL_SELECTOR, $1)
+  | SelectorAttr
+  | SelectorPseudoClass     -> selectorComponent(PSEUDO_CLASS, $1)
+  | SelectorPseudoElement   -> selectorComponent(PSEUDO_ELEMENT, $1)
+  | HASH_STRING             -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
+  | HEXA_NUMBER             -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
+  | FULL_STOP IDENT         -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  | GENERAL_IDENT           -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
+  | VENDOR_PREFIX_IDENT     -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
+  ;
+DescendantSelector
+  : ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight())
+  | SELECTOR_TYPE_WITH_WHITESPACE   -> selectorComponent(TYPE_SELECTOR, $1.trimRight())
+  | SELECTOR_CLASS_WITH_WHITESPACE  -> selectorComponent(CLASS_SELECTOR, $1.trimRight())
+  | SELECTOR_ID_WITH_WHITESPACE     -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1.trimRight() })
   ;
 SelectorAttr
   : LEFT_SQUARE_BRACKET IDENT SelectorAttrOperator GenericVal RIGHT_SQUARE_BRACKET
     %{
       $$ = {
-        attribute: $2,
-        operator: $3,
-        value: $4
+        type: ATTRIBUTE,
+        value: $2,
+        expression: {
+          type: EXPRESSION,
+          operator: $3,
+          value: $4
+        },
+        fullQuailfied: $2 + $3 + $4.fullQuailfied + $5
       }
     }%
   | LEFT_SQUARE_BRACKET IDENT RIGHT_SQUARE_BRACKET
     %{
-      $$ = {
-        attribute: $2
-      }
+      $$ = selectorComponent(ATTR_SELECTOR, {
+        type: ATTRIBUTE,
+        value: $2,
+        fullQuailfied: $2
+      })
+
+      $$.fullQuailfied = $1 + $2 + $3
+
     }%
   ;
 SelectorAttrOperator
@@ -600,7 +636,7 @@ SelectorPseudoElement
   ;
 
 SelectorPseudoClassList
-  : SelectorPseudoClass                   -> [defVariable(PSEUDO_CLASS, $1)]
+  : SelectorPseudoClass                           -> [defVariable(PSEUDO_CLASS, $1)]
   | SelectorPseudoClassList SelectorPseudoClass   -> merge($1, defVariable(PSEUDO_CLASS, $1))
   ;
 SelectorPseudoClass
@@ -609,16 +645,11 @@ SelectorPseudoClass
   ;
 
 PseudoClassFunc
-  : FUNCTION RIGHT_PARENTHESIS              -> { type: "FUNCTION", name: $1 }
-  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> { type: "FUNCTION", name: $1, parameters: $2 }
-  ;
-PseudoClassFuncParams
-  : PseudoClassFuncParam                            -> [$1]
-  | PseudoClassFuncParams PseudoClassFuncParam      -> merge($1, $2)
+  : FUNCTION RIGHT_PARENTHESIS                        -> { type: "FUNCTION", name: $1, fullQuailfied: $1 + $2 }
+  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> { type: "FUNCTION", name: $1, parameters: $2, fullQuailfied: $1 + $2.fullQuailfied + $3 }
   ;
 PseudoClassFuncParam
-  : SelectorGroupVal
-  | SelectorPseudoClassList
+  : SelectorGroup
   | PseudoClassFuncParam_an_plus_b
   ;
 PseudoClassFuncParam_an_plus_b
@@ -696,18 +727,18 @@ DeclarationPropName
   ;
 
 StringVal
-  : STRING    -> { type: 'STRING', value: $1 }
+  : STRING    -> { type: 'STRING', value: $1, fullQuailfied: $1 }
   ;
 UrlVal
-  : URL_FUNC       -> { type: 'URL', value: $1 }
+  : URL_FUNC       -> { type: 'URL', value: $1, fullQuailfied: $1 }
   ;
 IdentVal
   : IDENT                -> vendorPrefixIdVal($1)
   ;
 HashVal
-  : HASH_STRING                   -> { type: 'HASH', value: $1 }
-  | HEXA_NUMBER                   -> { type: 'HASH', value: $1 }
-  | SELECTOR_ID_WITH_WHITESPACE   -> { type: 'HASH', value: $1.trimRight() }
+  : HASH_STRING                   -> { type: 'HASH', value: $1, fullQuailfied: $1 }
+  | HEXA_NUMBER                   -> { type: 'HASH', value: $1, fullQuailfied: $1 }
+  | SELECTOR_ID_WITH_WHITESPACE   -> { type: 'HASH', value: $1.trimRight(), fullQuailfied:$1.trimRight() }
   ;
 PercentageVal
   : PERCENTAGE    -> percentageVal($1)
@@ -722,10 +753,10 @@ IdOrUrlOrStringVal
   | IdentVal
   ;
 NumberVal
-  : NUMBER        -> { type: NUMBER, value: parseFloat($1) }
+  : NUMBER        -> { type: NUMBER, value: parseFloat($1), fullQuailfied: parseFloat($1) }
   ;
 DimensionVal
-  : DIMENSION     -> demensionUnitVal($1)
+  : DIMENSION     -> dimensionUnitVal($1)
   ;
 GenericNumericVal
   : NumberVal
