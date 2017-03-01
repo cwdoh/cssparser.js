@@ -166,11 +166,8 @@
       value: value
     }
 
-    cssDeclarationValue.fullQuailfied = property.fullQuailfied + ': ' + value.fullQuailfied
-
     if (important) {
       cssDeclarationValue.important = true
-      cssDeclarationValue.fullQuailfied += ' !important'
     }
 
     return cssDeclarationValue
@@ -214,8 +211,7 @@
     if (list.length > 1)
       return {
         type: SEQUENCE,
-        value: list,
-        fullQuailfied: join(list, 'fullQuailfied', ' ')
+        value: list
       }
 
     return list
@@ -229,15 +225,13 @@
       return {
         type: 'ID',
         vendorPrefix: result[1],
-        value: result[3],
-        fullQuailfied: val
+        value: result[3]
       }
     }
 
     return {
       type: 'ID',
-      value: val,
-      fullQuailfied: val
+      value: val
     }
   }
 
@@ -249,15 +243,13 @@
       return {
         type: type,
         value: parseFloat(result[1]),
-        unit: result[5],
-        fullQuailfied: val
+        unit: result[5]
       }
     }
 
     return {
       type: type,
-      value: val,
-      fullQuailfied: val
+      value: val
     }
   }
 
@@ -273,15 +265,13 @@
       return {
         type: PERCENTAGE,
         value: parseFloat(result[1]),
-        unit: result[5],
-        fullQuailfied: val
+        unit: result[5]
       }
     }
 
     return {
       type: PERCENTAGE,
-      value: val,
-      fullQuailfied: val
+      value: val
     }
   }
 %}
@@ -634,20 +624,15 @@ SelectorAttr
           type: EXPRESSION,
           operator: $3,
           value: $4
-        },
-        fullQuailfied: $2 + $3 + $4.fullQuailfied + $5
+        }
       }
     }%
   | LEFT_SQUARE_BRACKET IDENT RIGHT_SQUARE_BRACKET
     %{
       $$ = selectorComponent(ATTR_SELECTOR, {
         type: ATTRIBUTE,
-        value: $2,
-        fullQuailfied: $2
+        value: $2
       })
-
-      $$.fullQuailfied = $1 + $2 + $3
-
     }%
   ;
 SelectorAttrOperator
@@ -663,7 +648,6 @@ SelectorPseudoElement
     %{
       $$ = $3
       $$.prefix = $1 + $2
-      $$.fullQuailfied = $$.prefix + $$.fullQuailfied
     }%
   ;
 
@@ -672,13 +656,13 @@ SelectorPseudoClassList
   | SelectorPseudoClassList SelectorPseudoClass   -> merge($1, defVariable(PSEUDO_CLASS, $1))
   ;
 SelectorPseudoClass
-  : COLON IDENT               -> { prefix: $1, name: $2, fullQuailfied: $1 + $2.name }
-  | COLON PseudoClassFunc     -> { prefix: $1, name: $2, fullQuailfied: $1 + $2.name }
+  : COLON IDENT               -> { prefix: $1, name: $2 }
+  | COLON PseudoClassFunc     -> { prefix: $1, name: $2 }
   ;
 
 PseudoClassFunc
-  : FUNCTION RIGHT_PARENTHESIS                        -> { type: "FUNCTION", name: $1, fullQuailfied: $1 + $2 }
-  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> { type: "FUNCTION", name: $1, parameters: $2, fullQuailfied: $1 + $2.fullQuailfied + $3 }
+  : FUNCTION RIGHT_PARENTHESIS                        -> { type: "FUNCTION", name: $1 }
+  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> { type: "FUNCTION", name: $1, parameters: $2 }
   ;
 PseudoClassFuncParam
   : SelectorGroup
@@ -759,18 +743,18 @@ DeclarationPropName
   ;
 
 StringVal
-  : STRING    -> { type: 'STRING', value: $1, fullQuailfied: $1 }
+  : STRING    -> { type: 'STRING', value: $1 }
   ;
 UrlVal
-  : URL_FUNC       -> { type: 'URL', value: $1, fullQuailfied: $1 }
+  : URL_FUNC       -> { type: 'URL', value: $1 }
   ;
 IdentVal
   : IDENT                -> vendorPrefixIdVal($1)
   ;
 HashVal
-  : HASH_STRING                   -> { type: 'HASH', value: $1, fullQuailfied: $1 }
-  | HEXA_NUMBER                   -> { type: 'HASH', value: $1, fullQuailfied: $1 }
-  | SELECTOR_ID_WITH_WHITESPACE   -> { type: 'HASH', value: $1.trimRight(), fullQuailfied:$1.trimRight() }
+  : HASH_STRING                   -> { type: 'HASH', value: $1 }
+  | HEXA_NUMBER                   -> { type: 'HASH', value: $1 }
+  | SELECTOR_ID_WITH_WHITESPACE   -> { type: 'HASH', value: $1.trimRight() }
   ;
 PercentageVal
   : PERCENTAGE    -> percentageVal($1)
@@ -785,7 +769,7 @@ IdOrUrlOrStringVal
   | IdentVal
   ;
 NumberVal
-  : NUMBER        -> { type: NUMBER, value: parseFloat($1), fullQuailfied: parseFloat($1) }
+  : NUMBER        -> { type: NUMBER, value: parseFloat($1) }
   ;
 DimensionVal
   : DIMENSION     -> dimensionUnitVal($1)
