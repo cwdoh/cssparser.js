@@ -38,7 +38,7 @@
     FUNCTIONS = "FUNCTIONS",
     FUNCTION = "FUNCTION",
 
-    DIMENSIONS = "DIMENSIONS",
+    SEQUENCE = "SEQUENCE",
     DIMENSION = "DIMENSION",
 
     PERCENTAGE = "PERCENTAGE",
@@ -166,8 +166,11 @@
       value: value
     }
 
+    cssDeclarationValue.fullQuailfied = property.fullQuailfied + ': ' + value.fullQuailfied
+
     if (important) {
       cssDeclarationValue.important = true
+      cssDeclarationValue.fullQuailfied += ' !important'
     }
 
     return cssDeclarationValue
@@ -186,11 +189,33 @@
     return lVal.concat(rVal)
   }
 
-  const multiDimesionsVal = function(list) {
+  const join = function(list, key, separator) {
+    var result = []
+    separator = separator || ''
+
+    if (key) {
+      for (var k in list) {
+        var it = list[k]
+
+        if (key in it) {
+          result.push(it[key])
+        } else {
+          throw new Error('No such key in the list')
+        }
+      }
+    } else {
+      result = list
+    }
+
+    return result.join(separator)
+  }
+
+  const sequencialVal = function(list) {
     if (list.length > 1)
       return {
-        type: DIMENSIONS,
-        value: list
+        type: SEQUENCE,
+        value: list,
+        fullQuailfied: join(list, 'fullQuailfied', ' ')
       }
 
     return list
@@ -582,9 +607,16 @@ Selector
   | SelectorPseudoElement   -> selectorComponent(PSEUDO_ELEMENT, $1)
   | HASH_STRING             -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
   | HEXA_NUMBER             -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
-  | FULL_STOP IDENT         -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  | ClassSelector
   | GENERAL_IDENT           -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
   | VENDOR_PREFIX_IDENT     -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
+  ;
+ClassSelector
+  : FULL_STOP IDENT                 -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  | FULL_STOP OPERATOR_AND          -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  | FULL_STOP OPERATOR_OR           -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  | FULL_STOP OPERATOR_ONLY         -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  | FULL_STOP OPERATOR_NOT          -> selectorComponent(CLASS_SELECTOR, $1 + $2)
   ;
 DescendantSelector
   : ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight())
@@ -640,8 +672,8 @@ SelectorPseudoClassList
   | SelectorPseudoClassList SelectorPseudoClass   -> merge($1, defVariable(PSEUDO_CLASS, $1))
   ;
 SelectorPseudoClass
-  : COLON IDENT               -> { fullQuailfied: $1 + $2, name: $2 }
-  | COLON PseudoClassFunc     -> { fullQuailfied: $1 + $2.name, name: $2 }
+  : COLON IDENT               -> { prefix: $1, name: $2, fullQuailfied: $1 + $2.name }
+  | COLON PseudoClassFunc     -> { prefix: $1, name: $2, fullQuailfied: $1 + $2.name }
   ;
 
 PseudoClassFunc
@@ -657,7 +689,7 @@ PseudoClassFuncParam_an_plus_b
   | N PLUS_SIGN NUMBER                    /* n + 1 */
   | HYPHEN_MINUS N PLUS_SIGN NUMBER       /* -n + 1 */
   | NUMBER                                /* 1 */
-  | HYPHEN_MINUS N                        /* 2n or -2n */
+  | DIMENSION                             /* 2n or -2n */
   | HYPHEN_MINUS NUMBER N                 /* -n + 1 */
   ;
 
@@ -696,7 +728,7 @@ DeclarationPropValLists
   | DeclarationPropValLists COMMA DeclarationPropValList    -> merge($1, $3)
   ;
 DeclarationPropValList
-  : DeclarationPropVals -> multiDimesionsVal($1)
+  : DeclarationPropVals -> sequencialVal($1)
   ;
 DeclarationPropVals
   : DeclarationPropVal                       -> $1

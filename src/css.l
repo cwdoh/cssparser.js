@@ -74,6 +74,8 @@ character_i                 "i"|"I"
 
 [Uu]\+{range}					    {return _token('UNICODE_RANGE');}
 
+"-"{ident}                          {return _token('GENERAL_IDENT');}
+
 "~="								{return _token('INCLUDE_MATCH');}			/* includes */
 "|="								{return _token('DASH_MATCH');}	    		/* dash match */
 "^="								{return _token('PREFIX_MATCH');}			/* prefix match */
