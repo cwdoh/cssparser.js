@@ -28,7 +28,7 @@
 
     ATTRIBUTE = "ATTRIBUTE",
 
-    CALC_EXPRESSION = "CALC_EXPRESSION",
+    CALC_OPERATION = "CALC_OPERATION",
     EXPRESSION = "EXPRESSION",
 
     MEDIA_TYPE = "MEDIA_TYPE",
@@ -45,6 +45,63 @@
     NUMBER = "NUMBER",
 
     EndOfList = ''
+
+  const keyframesVal = function(selector, val) {
+    return {
+      type: KEYFRAMES_BLOCK,
+      selector: selector,
+      value: val
+    }
+  }
+
+  const urlVal = function(val) {
+    return {
+      type: 'URL',
+      value: val
+    }
+  }
+
+  const numberVal = function(val) {
+    return {
+      type: 'NUMBER',
+      value: parseFloat(val)
+    }
+  }
+
+  const stringVal = function(val) {
+    return {
+      type: 'STRING',
+      value: val
+    }
+  }
+
+  const hashVal = function(val) {
+    return {
+      type: 'HASH',
+      value: val
+    }
+  }
+
+  const operationVal = function(operator, lhs, rhs) {
+    return {
+      type: CALC_OPERATION,
+      lhs: lhs,
+      operator: operator,
+      rhs: rhs
+    }
+  }
+  const functionVal = function(name, parameters) {
+    var value = {
+      type: FUNCTION,
+      name: name
+    }
+
+    if (parameters) {
+      value.parameters = parameters
+    }
+
+    return value
+  }
 
   const defVariable = function(type, value) {
     // console.log('defVariable\t=', type, value)
@@ -347,7 +404,7 @@ at_rule_simple
   ;
 
 at_rule_charset
-  : AT_CHARSET StringVal     -> atRule($AT_CHARSET, $StringVal)
+  : AT_CHARSET StringVal     -> atRule($1, $2)
   ;
 at_rule_import
   : AT_IMPORT UrlOrStringVal                              -> atRule($1, $2)
@@ -391,7 +448,7 @@ keyframes_block_list
   | keyframes_block_list keyframes_block  -> merge($1, $2)
   ;
 keyframes_block
-  : keyframes_selector Declarations       -> { type: KEYFRAMES_BLOCK, selector: $1, value: $2 }
+  : keyframes_selector Declarations       -> keyframesVal($1, $2)
   ;
 keyframes_name
   : IdentVal
@@ -413,17 +470,17 @@ at_rule_page_frontpart
   ;
 
 at_rule_document
-  : AT_DOCUMENT AtDocumentFuncValList -> atRule($1, null, 'value', { type: FUNCTIONS, value: $2 })
+  : AT_DOCUMENT AtDocumentFuncValList -> atRule($1, null, 'value', functionVal($2))
   ;
 AtDocumentFuncValList
   : AtDocumentFuncVal
   | AtDocumentFuncValList COMMA AtDocumentFuncVal   -> merge($1, $3)
   ;
 AtDocumentFuncVal
-  : URL_FUNC            -> { type: FUNCTION, name: "url", value: $1 }
-  | URL_PREFIX_FUNC     -> { type: FUNCTION, name: "url-prefix", value: $1 }
-  | DOMAIN_FUNC         -> { type: FUNCTION, name: "domain", value: $1 }
-  | REGEXP_FUNC         -> { type: FUNCTION, name: "regexp", value: $1 }
+  : URL_FUNC            -> functionVal('url', $1)
+  | URL_PREFIX_FUNC     -> functionVal('url-prefix', $1)
+  | DOMAIN_FUNC         -> functionVal('domain', $1)
+  | REGEXP_FUNC         -> functionVal('regexp', $1)
   ;
 
 at_rule_font_face
@@ -595,8 +652,8 @@ Selector
   | SelectorAttr
   | SelectorPseudoClass     -> selectorComponent(PSEUDO_CLASS, $1)
   | SelectorPseudoElement   -> selectorComponent(PSEUDO_ELEMENT, $1)
-  | HASH_STRING             -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
-  | HEXA_NUMBER             -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1 })
+  | HASH_STRING             -> selectorComponent(ID_SELECTOR, hashVal($1))
+  | HEXA_NUMBER             -> selectorComponent(ID_SELECTOR, hashVal($1))
   | ClassSelector
   | GENERAL_IDENT           -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
   | VENDOR_PREFIX_IDENT     -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
@@ -612,7 +669,7 @@ DescendantSelector
   : ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight())
   | SELECTOR_TYPE_WITH_WHITESPACE   -> selectorComponent(TYPE_SELECTOR, $1.trimRight())
   | SELECTOR_CLASS_WITH_WHITESPACE  -> selectorComponent(CLASS_SELECTOR, $1.trimRight())
-  | SELECTOR_ID_WITH_WHITESPACE     -> selectorComponent(ID_SELECTOR, { type: 'HASH', value: $1.trimRight() })
+  | SELECTOR_ID_WITH_WHITESPACE     -> selectorComponent(ID_SELECTOR, hashVal($1.trimRight()))
   ;
 SelectorAttr
   : LEFT_SQUARE_BRACKET IDENT SelectorAttrOperator GenericVal RIGHT_SQUARE_BRACKET
@@ -661,8 +718,8 @@ SelectorPseudoClass
   ;
 
 PseudoClassFunc
-  : FUNCTION RIGHT_PARENTHESIS                        -> { type: "FUNCTION", name: $1 }
-  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> { type: "FUNCTION", name: $1, parameters: $2 }
+  : FUNCTION RIGHT_PARENTHESIS                        -> functionVal($1)
+  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> functionVal($1, $2)
   ;
 PseudoClassFuncParam
   : SelectorGroup
@@ -681,20 +738,12 @@ PseudoClassFuncParam_an_plus_b
 ** CALC()
 ********************/
 CalcFuncVal
-  : CALC_FUNC RIGHT_PARENTHESIS                   -> { type: FUNCTION, name: 'calc' }
-  | CALC_FUNC CalcExpr RIGHT_PARENTHESIS          -> { type: FUNCTION, name: 'calc', expressions: $2 }
+  : CALC_FUNC RIGHT_PARENTHESIS                   -> functionVal('calc')
+  | CALC_FUNC CalcExpr RIGHT_PARENTHESIS          -> functionVal('calc', $2)
   ;
 CalcExpr
   : GenericNumericVal
-  | CalcExpr CalcOperator GenericNumericVal
-    %{
-      $$ = {
-        type: CALC_EXPRESSION,
-        leftHandSide: $1,
-        operator: $2,
-        rightHandSide: $3
-      }
-    }%
+  | CalcExpr CalcOperator GenericNumericVal       -> operationVal($2, $1, $3)
   ;
 CalcOperator
   : ASTERISK
@@ -743,18 +792,18 @@ DeclarationPropName
   ;
 
 StringVal
-  : STRING    -> { type: 'STRING', value: $1 }
+  : STRING    -> stringVal($1)
   ;
 UrlVal
-  : URL_FUNC       -> { type: 'URL', value: $1 }
+  : URL_FUNC       -> urlVal($1)
   ;
 IdentVal
   : IDENT                -> vendorPrefixIdVal($1)
   ;
 HashVal
-  : HASH_STRING                   -> { type: 'HASH', value: $1 }
-  | HEXA_NUMBER                   -> { type: 'HASH', value: $1 }
-  | SELECTOR_ID_WITH_WHITESPACE   -> { type: 'HASH', value: $1.trimRight() }
+  : HASH_STRING                   -> hashVal($1)
+  | HEXA_NUMBER                   -> hashVal($1)
+  | SELECTOR_ID_WITH_WHITESPACE   -> hashVal($1.trimRight())
   ;
 PercentageVal
   : PERCENTAGE    -> percentageVal($1)
@@ -769,7 +818,7 @@ IdOrUrlOrStringVal
   | IdentVal
   ;
 NumberVal
-  : NUMBER        -> { type: NUMBER, value: parseFloat($1) }
+  : NUMBER        -> numberVal($1)
   ;
 DimensionVal
   : DIMENSION     -> dimensionUnitVal($1)
@@ -799,27 +848,16 @@ IDENT
 ComponentName
   : IDENT                           -> vendorPrefixIdVal($1)
   ;
-
 FuncVal
-  : FUNCTION RIGHT_PARENTHESIS              -> { type: FUNCTION, name: $1 }
-  | FUNCTION FuncParams RIGHT_PARENTHESIS   -> { type: FUNCTION, name: $1, parameters: $2 }
+  : FUNCTION RIGHT_PARENTHESIS              -> functionVal($1)
+  | FUNCTION FuncParams RIGHT_PARENTHESIS   -> functionVal($1, $2)
   ;
 FUNCTION
   : IDENT LEFT_PARENTHESIS          -> $1
   | OPERATOR_NOT LEFT_PARENTHESIS   -> $1
   ;
 FuncParams
-  : DeclarationPropVals                    -> [$1]
-  | FuncParams COMMA DeclarationPropVals   -> merge($1, $3)
-  | IDENT FuncParamOperator GenericNumericVal
-   %{
-      $$ = [{
-        type: EXPRESSION,
-        operator: $2,
-        rightHandSide: $3
-      }]
-    }%
-  ;
-FuncParamOperator
-  : ASSIGN_MARK     -> { type: 'ASSIGN_OPERATOR', value: $1 }
+  : DeclarationPropVals                         -> [$1]
+  | FuncParams COMMA DeclarationPropVals        -> merge($1, $3)
+  | IDENT FuncParamOperator GenericNumericVal   -> [operationVal($2, $1, $3)]
   ;
