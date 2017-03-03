@@ -1,3 +1,8 @@
+![Travis Build Status - Master](https://img.shields.io/travis/cwdoh/cssparser.js/master.svg)
+![Travis Build Status - Develop](https://img.shields.io/travis/cwdoh/cssparser.js/develop.svg)
+![npm downloads in the last month](https://img.shields.io/npm/dm/cssparser.svg)
+![npm total downloads](https://img.shields.io/npm/dt/cssparser.svg)
+
 cssparser.js
 ======
 

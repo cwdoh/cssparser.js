@@ -85,7 +85,6 @@ var $0 = $$.length - 1;
 switch (yystate) {
 case 1:
 
-      console.log(JSON.stringify($$[$0-1], null, '\t'))
       this.$ = $$[$0-1]
     
 break;

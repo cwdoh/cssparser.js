@@ -5,7 +5,6 @@
 stylesheet
   : stylesheet_list EOF
     %{
-      console.log(JSON.stringify($1, null, '\t'))
       $$ = $1
     }%
   ;
