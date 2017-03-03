@@ -14,4 +14,4 @@ env:
   - JOB=test
 
 script:
-  - 'if [ "$JOB" = "test" ]; then make test-ci; fi'
+  - 'if [ "$JOB" = "test" ]; then npm run test; fi'
