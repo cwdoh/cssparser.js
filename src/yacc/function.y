@@ -2,8 +2,8 @@
 ** GENERIC FUNCTION
 ********************/
 FunctionVal
-  : FUNCTION RIGHT_PARENTHESIS                      -> functionVal($1)
-  | FUNCTION FunctionParameters RIGHT_PARENTHESIS   -> functionVal($1, $2)
+  : FUNCTION RIGHT_PARENTHESIS                      -> FunctionVal.create($1)
+  | FUNCTION FunctionParameters RIGHT_PARENTHESIS   -> FunctionVal.create($1, $2)
   ;
 
 FUNCTION
@@ -12,21 +12,21 @@ FUNCTION
   ;
 
 FunctionParameters
-  : PropertyValueItem                                 -> [$1]
-  | FunctionParameters COMMA PropertyValueItem        -> merge($1, $3)
-  | IDENT ASSIGN_MARK GenericNumericVal             -> [operationVal($2, $1, $3)]
+  : PropertyValueItem                               -> [$1]
+  | FunctionParameters COMMA PropertyValueItem      -> concat($1, $3)
+  | IDENT ASSIGN_MARK GenericNumericVal             -> [Expression.create($2, $1, $3)]    /* same as `Expression.create().set('operator', $2).set('lhs', $1).set('rhs', $3)` */
   ;
 
 /********************
 ** CALC() FUNCTION
 ********************/
 CalcFunction
-  : CALC_FUNC RIGHT_PARENTHESIS                         -> functionVal('calc')
-  | CALC_FUNC CalcExpression RIGHT_PARENTHESIS          -> functionVal('calc', $2)
+  : CALC_FUNC RIGHT_PARENTHESIS                         -> FunctionVal.create('calc')
+  | CALC_FUNC CalcExpression RIGHT_PARENTHESIS          -> FunctionVal.create('calc', $2)
   ;
 CalcExpression
   : GenericNumericVal
-  | CalcExpression CalcOperator GenericNumericVal       -> operationVal($2, $1, $3)
+  | CalcExpression CalcOperator GenericNumericVal       -> Expression.create($2, $1, $3)    /* same as `Expression.create().set('operator', $2).set('lhs', $1).set('rhs', $3)` */
   ;
 CalcOperator
   : ASTERISK

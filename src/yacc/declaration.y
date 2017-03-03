@@ -4,28 +4,21 @@
 
 PropertyName
   : IdentVal
-  | ASTERISK IdentVal                   ->  addProp($2, 'asteriskHack', true)
-  | ASTERISK_WITH_WHITESPACE IdentVal   ->  addProp($2.trimRight(), 'asteriskHack', true)
+  | ASTERISK IdentVal                   ->  $2.set('asteriskHack', true)
+  | ASTERISK_WITH_WHITESPACE IdentVal   ->  $2.set('asteriskHack', true)
   ;
 PropertyValue
   : PropertyValueItemSequence
-  | PropertyValue COMMA PropertyValueItemSequence    -> merge($1, $3)
+  | PropertyValue COMMA PropertyValueItemSequence    -> concat($1, $3)
   ;
 PropertyValueItemSequence
-  : PropertyValueItem -> sequencialVal($1)
+  : PropertyValueItem -> SequenceVal.create($1)
   ;
 PropertyValueItem
-  : GenericPropertyValueItem                              -> $1
-  | PropertyValueItem GenericPropertyValueItem                -> merge($1, $2)
-  | PropertyValueItem CalcOperator GenericPropertyValueItem
-    %{
-      $$ = {
-        type: EXPRESSION,
-        lhs: $1,
-        operator: $2,
-        lhs: $3
-      }
-    }%
+  : GenericPropertyValueItem
+  | PropertyValueItem GenericPropertyValueItem                -> concat($1, $2)
+  /* FIXME: Make expression more clear */
+  | PropertyValueItem CalcOperator GenericPropertyValueItem   -> Expression.create().set('operator', $2).set('lhs', $1).set('rhs', $3)
   ;
 GenericPropertyValueItem
   : StringVal

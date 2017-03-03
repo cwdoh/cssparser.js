@@ -2,6 +2,7 @@
 echo "------------------------------------------------------------"
 echo " Create Parser"
 echo "------------------------------------------------------------"
+npm run es6
 gulp merge
 jison dist/cssparser.y dist/css.l -o lib/cssparser.js
 cp ./lib/cssparser.js ./web/

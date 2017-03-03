@@ -3,25 +3,25 @@
 ********************/
 
 NumberVal
-  : NUMBER        -> numberVal($1)
-  ;
-DimensionVal
-  : DIMENSION     -> dimensionUnitVal($1)
+  : NUMBER        -> NumberVal.create($1)
   ;
 StringVal
-  : STRING    -> stringVal($1)
+  : STRING        -> StringVal.create($1)
+  ;
+DimensionVal
+  : DIMENSION     -> DimensionVal.create($1)
   ;
 UrlVal
-  : URL_FUNC       -> urlVal($1)
+  : URL_FUNC      -> UrlVal.create($1)
   ;
 IdentVal
-  : IDENT                -> vendorPrefixIdVal($1)
+  : IDENT         -> IdentVal.create($1)
   ;
 HashVal
-  : HASH_STRING                   -> hashVal($1)
-  | HEXA_NUMBER                   -> hashVal($1)
-  | SELECTOR_ID_WITH_WHITESPACE   -> hashVal($1.trimRight())
+  : HASH_STRING                   -> HashVal.create($1)
+  | HEXA_NUMBER                   -> HashVal.create($1)
+  | SELECTOR_ID_WITH_WHITESPACE   -> HashVal.create($1.trimRight())
   ;
 PercentageVal
-  : PERCENTAGE    -> percentageVal($1)
+  : PERCENTAGE    -> PercentageVal.create($1)
   ;

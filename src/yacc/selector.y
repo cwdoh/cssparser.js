@@ -5,65 +5,77 @@
  *      [2] https://www.w3.org/TR/css3-selectors/#combinators
  */
 
+
 SelectorList
-  : SelectorGroup                        -> merge(defVariable(SELECTOR, removeTailingSelectorCombinator($1)), [])
-  | SelectorList COMMA SelectorGroup     -> merge($1, defVariable(SELECTOR, removeTailingSelectorCombinator($3)))
+  : SelectorGroup                        -> SelectorList.create().add(RootSelector.create($1))
+  | SelectorList COMMA SelectorGroup     -> $1.add(RootSelector.create($3))
   ;
 SelectorGroup
   : Selector
   | Selector SelectorGroup
     %{
       $$ = $1
-      $$.nextSelector = $2
+      $1.set('nextSelector', $2)
     }%
   | Selector SelectorCombinator SelectorGroup
     %{
       $$ = $1
-      $$.nextSelector = $2
-      $$.nextSelector.nextSelector = $3
+      $1.set('nextSelector', $2)
+      $2.set('nextSelector', $3)
     }%
   | DescendantSelector
   | DescendantSelector SelectorGroup
     %{
+      var combinator = DescendantSelectorCombinator.create(' ')
+
+      // $1 -> combinator -> $2
       $$ = $1
-      $$.nextSelector = selectorCombinator("DESCENDANT", " ")
-      $$.nextSelector.nextSelector = $2
+      $$.set('nextSelector', combinator)
+      combinator.set('nextSelector', $2)
     }%
   | DescendantSelector SelectorCombinator SelectorGroup
     %{
       $$ = $1
-      $$.nextSelector = $2
-      $$.nextSelector.nextSelector = $3
+      $1.set('nextSelector', $2)
+      $2.set('nextSelector', $3)
     }%
   ;
 SelectorCombinator
-  : GREATER_THAN_SIGN   -> selectorCombinator("CHILD", $1)
-  | PLUS_SIGN           -> selectorCombinator("ADJACENT_SIBLING", $1)
-  | TILDE               -> selectorCombinator("GENERAL_SIBLING", $1)
+  : GREATER_THAN_SIGN   -> ChildSelectorCombinator.create($1)
+  | PLUS_SIGN           -> AdjacentSiblingSelectorCombinator.create($1)
+  | TILDE               -> SiblingSelectorCombinator.create($1)
   ;
 Selector
-  : ASTERISK                -> selectorComponent(UNIVERSAL_SELECTOR, $1)
+  : UniversalSelector
+  | ClassSelector
+  | TypeSelector
+  | IdSelector
   | SelectorAttr
   | SelectorPseudoClass     -> selectorComponent(PSEUDO_CLASS, $1)
   | SelectorPseudoElement   -> selectorComponent(PSEUDO_ELEMENT, $1)
-  | HASH_STRING             -> selectorComponent(ID_SELECTOR, hashVal($1))
-  | HEXA_NUMBER             -> selectorComponent(ID_SELECTOR, hashVal($1))
-  | ClassSelector
-  | GENERAL_IDENT           -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
-  | VENDOR_PREFIX_IDENT     -> selectorComponent(TYPE_SELECTOR, vendorPrefixIdVal($1))
+  ;
+UniversalSelector
+  : ASTERISK                -> UniversalSelector.create($1)
+  ;
+IdSelector
+  : HASH_STRING             -> IdSelector.create(hashVal($1))
+  | HEXA_NUMBER             -> IdSelector.create(hashVal($1))
+  ;
+TypeSelector
+  : GENERAL_IDENT           -> TypeSelector.create($1)
   ;
 ClassSelector
-  : FULL_STOP IDENT                 -> selectorComponent(CLASS_SELECTOR, $1 + $2)
-  | FULL_STOP OPERATOR_AND          -> selectorComponent(CLASS_SELECTOR, $1 + $2)
-  | FULL_STOP OPERATOR_OR           -> selectorComponent(CLASS_SELECTOR, $1 + $2)
-  | FULL_STOP OPERATOR_ONLY         -> selectorComponent(CLASS_SELECTOR, $1 + $2)
-  | FULL_STOP OPERATOR_NOT          -> selectorComponent(CLASS_SELECTOR, $1 + $2)
+  : FULL_STOP IDENT                 -> ClassSelector.create($1 + $2)
+  | FULL_STOP OPERATOR_AND          -> ClassSelector.create($1 + $2)
+  | FULL_STOP OPERATOR_OR           -> ClassSelector.create($1 + $2)
+  | FULL_STOP OPERATOR_ONLY         -> ClassSelector.create($1 + $2)
+  | FULL_STOP OPERATOR_NOT          -> ClassSelector.create($1 + $2)
   ;
 DescendantSelector
-  : ASTERISK_WITH_WHITESPACE        -> selectorComponent(UNIVERSAL_SELECTOR, $1.trimRight())
-  | SELECTOR_TYPE_WITH_WHITESPACE   -> selectorComponent(TYPE_SELECTOR, $1.trimRight())
-  | SELECTOR_CLASS_WITH_WHITESPACE  -> selectorComponent(CLASS_SELECTOR, $1.trimRight())
-  | SELECTOR_ID_WITH_WHITESPACE     -> selectorComponent(ID_SELECTOR, hashVal($1.trimRight()))
+  : ASTERISK_WITH_WHITESPACE        -> UniversalSelector.create($1.trimRight())
+  | SELECTOR_TYPE_WITH_WHITESPACE   -> TypeSelector.create($1.trimRight())
+  | SELECTOR_CLASS_WITH_WHITESPACE  -> ClassSelector.create($1.trimRight())
+  | SELECTOR_ID_WITH_WHITESPACE     -> IdSelector.create(hashVal($1.trimRight()))
   ;
 SelectorAttr
   : LEFT_SQUARE_BRACKET IDENT SelectorAttrOperator GenericVal RIGHT_SQUARE_BRACKET
@@ -112,8 +124,8 @@ SelectorPseudoClass
   ;
 
 PseudoClassFunc
-  : FUNCTION RIGHT_PARENTHESIS                        -> functionVal($1)
-  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> functionVal($1, $2)
+  : FUNCTION RIGHT_PARENTHESIS                        -> FunctionVal.create($1)
+  | FUNCTION PseudoClassFuncParam RIGHT_PARENTHESIS   -> FunctionVal.create($1, $2)
   ;
 PseudoClassFuncParam
   : SelectorGroup

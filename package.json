@@ -50,7 +50,7 @@
     "jison": ">= 0.4.4"
   },
   "scripts": {
-    "es6": "babel src -d lib",
+    "es6": "babel src -d dist",
     "merge": "gulp merge",
     "test": "./run.sh"
   },

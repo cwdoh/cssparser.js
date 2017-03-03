@@ -1,332 +1,509 @@
-  const
-    AT_RULE = "AT_RULE",
+const concat = function(l, r) {
+    l = (l)? l : []
+    r = (r)? r : []
 
-    MEDIA_QUERIES = "MEDIA_QUERIES",
-    MEDIA_QUERY = "MEDIA_QUERY",
-    MEDIA_QUERY_EXPR = "MEDIA_QUERY_EXPR",
+    l = (l instanceof(Array))? l : [l]
+    r = (r instanceof(Array))? r : [r]
 
-    FONT_FACE = "FONT_FACE",
+    return l.concat(r)
+}
 
-    /*
-     * Ref: [1] https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors 
-     */
-    SELECTOR = "SELECTOR",
-    TYPE_SELECTOR = "TYPE_SELECTOR",
-    CLASS_SELECTOR = "CLASS_SELECTOR",
-    ID_SELECTOR = "ID_SELECTOR",
-    UNIVERSAL_SELECTOR = "UNIVERSAL_SELECTOR",
-    ATTR_SELECTOR = "ATTR_SELECTOR",
-    ATTR_OPERATOR = "ATTR_OPERATOR",
-    PSEUDO_CLASS = "PSEUDO_CLASS",
-    PSEUDO_ELEMENT = "PSEUDO_ELEMENT",
-    SELECTOR_COMBINATOR = "SELECTOR_COMBINATOR",
-
-    CSS_RULE = "CSS_RULE",
-    DECLARATIONS = "DECLARATIONS",
-    DECLARATION = "DECLARATION",
-
-    ATTRIBUTE = "ATTRIBUTE",
-
-    CALC_OPERATION = "CALC_OPERATION",
-    EXPRESSION = "EXPRESSION",
-
-    MEDIA_TYPE = "MEDIA_TYPE",
-
-    KEYFRAMES_BLOCK = "KEYFRAMES_BLOCK",
-
-    FUNCTIONS = "FUNCTIONS",
-    FUNCTION = "FUNCTION",
-
-    SEQUENCE = "SEQUENCE",
-    DIMENSION = "DIMENSION",
-
-    PERCENTAGE = "PERCENTAGE",
-    NUMBER = "NUMBER",
-
-    EndOfList = ''
-
-  const keyframesVal = function(selector, val) {
-    return {
-      type: KEYFRAMES_BLOCK,
-      selector: selector,
-      value: val
+const toJSON = (o) => {
+    if (!o) {
+        return null
     }
-  }
+    return (o.hasOwnProperty('toJSON'))? o.toJSON() : o
+}
 
-  const urlVal = function(val) {
-    return {
-      type: 'URL',
-      value: val
-    }
-  }
-
-  const numberVal = function(val) {
-    return {
-      type: 'NUMBER',
-      value: parseFloat(val)
-    }
-  }
-
-  const stringVal = function(val) {
-    return {
-      type: 'STRING',
-      value: val
-    }
-  }
-
-  const hashVal = function(val) {
-    return {
-      type: 'HASH',
-      value: val
-    }
-  }
-
-  const operationVal = function(operator, lhs, rhs) {
-    return {
-      type: CALC_OPERATION,
-      lhs: lhs,
-      operator: operator,
-      rhs: rhs
-    }
-  }
-  const functionVal = function(name, parameters) {
-    var value = {
-      type: FUNCTION,
-      name: name
+class CSSObject {
+    getType(type) {
+        return 'OBJECT'
     }
 
-    if (parameters) {
-      value.parameters = parameters
-    }
-
-    return value
-  }
-
-  const defVariable = function(type, value) {
-    // console.log('defVariable\t=', type, value)
-    return {
-      type: type,
-      value: value
-    }
-  }
-
-  const selectorComponent = function(selectorType, value, combinator) {
-    var component = defVariable(selectorType, (typeof(value) == 'string')? value.trimRight(): value)
-
-    if (combinator) {
-      return merge(component, combinator)
-    }
-
-    return component
-  }
-  
-  const selectorCombinator = function(combinatorType, value) {
-    return {
-      type: SELECTOR_COMBINATOR,
-      value: defVariable(combinatorType, value)
-    }
-  }
-
-  const removeTailingSelectorCombinator = function(list) {
-    if (list.length > 0) {
-      var lastItem = list[list.length - 1]
-
-      if (lastItem.type == SELECTOR_COMBINATOR) {
-        list.pop()
-        return list
-      }
-    }
-
-    return list
-  }
-
-  const atRule = function(rule, value, optKey, optVal) {
-    // console.log('atRule\t\t = ', rule, value, optKey, optVal)
-    var ruleValue = {
-      type: AT_RULE,
-      rule: rule
-    }
-
-    if (value) {
-      ruleValue.value = value
-    }
-    if (optKey) {
-      ruleValue[optKey] = optVal
-    }
-
-    return ruleValue
-  }
-
-  const mediaQuery = function(operator, mediaType, expressions) {
-    // console.log('mediaQuery\t = ', operator, mediaType, JSON.stringify(expression))
-    var mediaQueryValue = {
-      type: MEDIA_TYPE
-    }
-
-    if (operator) {
-      mediaQueryValue.operator = operator
-    }
-    if (mediaType) {
-      mediaQueryValue.value = mediaType
-    }
-    if (expressions) {
-      mediaQueryValue.expressions = expressions
-    }
-
-    return defVariable(MEDIA_QUERY, mediaQueryValue)
-  }
-
-  const mediaQueryExpr = function(feature, value) {
-    var mediaQueryValue = {
-      type: MEDIA_QUERY_EXPR
-    }
-    if (feature) {
-      mediaQueryValue.feature = feature
-    }
-    if (value) {
-      mediaQueryValue.value = value
-    }
-
-    return mediaQueryValue
-  }
-
-  const addProp = function(o, prop, value) {
-    if (prop in o) {
-      throw new Error('Object already has property: ' + prop)
-    }
-    
-    if (value) {
-      o[prop] = value
-    }
-
-    return o
-  }
-
-  const addComment = function(o, comment) {
-    return addProp(o, 'comment', comment)
-  }
-
-  const declarations = function(value) {
-    var cssDeclarations = {
-      type: DECLARATIONS,
-      value: value
-    }
-
-    return cssDeclarations
-  }
-
-  const cssDeclarationVal = function(property, value, important) {
-    var cssDeclarationValue = {
-      type: DECLARATION,
-      property: property,
-      value: value
-    }
-
-    if (important) {
-      cssDeclarationValue.important = true
-    }
-
-    return cssDeclarationValue
-  }
-
-  const merge = function(lVal, rVal) {
-    // console.log('lVal = (' + typeof(lVal) + ')' + JSON.stringify(lVal), 'rVal = (' + typeof(rVal) + ')' + JSON.stringify(rVal))
-
-    if (!(lVal instanceof(Array))) {
-      lVal = [lVal]
-    }
-    if (!(rVal instanceof(Array))) {
-      rVal = [rVal]
-    }
-
-    return lVal.concat(rVal)
-  }
-
-  const join = function(list, key, separator) {
-    var result = []
-    separator = separator || ''
-
-    if (key) {
-      for (var k in list) {
-        var it = list[k]
-
-        if (key in it) {
-          result.push(it[key])
-        } else {
-          throw new Error('No such key in the list')
+    set(key, value) {
+        if (value) {
+            this[key] = value
         }
-      }
-    } else {
-      result = list
+        return this
     }
 
-    return result.join(separator)
-  }
-
-  const sequencialVal = function(list) {
-    if (list.length > 1)
-      return {
-        type: SEQUENCE,
-        value: list
-      }
-
-    return list
-  }
-
-  const vendorPrefixIdVal = function(val) {
-    const identPattern = /([-](webkit|moz|o|ms)[-])([0-9a-zA-Z-]*)/
-    var result = val.match(identPattern)
-
-    if (result) {
-      return {
-        type: 'ID',
-        vendorPrefix: result[1],
-        value: result[3]
-      }
+    get(key, defaultValue) {
+        if (key in this) {
+            return this[key]
+        }
+        return defaultValue
     }
 
-    return {
-      type: 'ID',
-      value: val
-    }
-  }
-
-  const unitVal = function(type, val) {
-    const pattern = /(([\+\-]?[0-9]+(\.[0-9]+)?)|([\+\-]?\.[0-9]+))([a-zA-Z]+)/
-    var result = val.match(pattern)
-
-    if (result) {
-      return {
-        type: type,
-        value: parseFloat(result[1]),
-        unit: result[5]
-      }
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: toJSON(this.get('value'))
+        }
     }
 
-    return {
-      type: type,
-      value: val
+
+    static create(value) {
+        return (new CSSObject()).set('value', value)
     }
-  }
+}
 
-  const dimensionUnitVal = function(val) {
-    return unitVal(DIMENSION, val)
-  }
-
-  const percentageVal = function(val) {
-    const pattern = /(([\+\-]?[0-9]+(\.[0-9]+)?)|([\+\-]?\.[0-9]+))([%])/
-    var result = val.match(pattern)
-
-    if (result) {
-      return {
-        type: PERCENTAGE,
-        value: parseFloat(result[1]),
-        unit: result[5]
-      }
+class StyleSheet extends CSSObject {
+    getType(type) {
+        return 'STYLESHEET'
     }
 
-    return {
-      type: PERCENTAGE,
-      value: val
+    add(component) {
+        if (!this.value) {
+            this.value = []
+        }
+
+        if (component) {
+            this.value.push(component)
+        }
+
+        return this
     }
-  }
+
+    toJSON() {
+        var json = []
+        var components = this.get('value', [])
+
+        return {
+            type: this.getType(),
+            value: components.map((o) => toJSON(o))
+        }
+    }
+
+    static create() {
+        return new StyleSheet()
+    }
+}
+
+class AtRule extends CSSObject {
+    getType() {
+        return 'AT_RULE'
+    }
+
+    rule(rule) {
+        return set('rule', rule)
+    }
+}
+
+class AtCharsetRule extends AtRule {
+    getType(rule) {
+        return 'AT_RULE'
+    }
+}
+
+class StringVal extends CSSObject {
+    getType() {
+        return 'STRING'
+    }
+
+    static create(value) {
+        return new StringVal().set('value', value)
+    }
+}
+
+class PrimitiveVal extends CSSObject {
+    getType() {
+        return 'PRIMITIVE_VALUE'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: this.get('value')
+        }
+    }
+}
+
+class NumberVal extends PrimitiveVal {
+    getType() {
+        return 'NUMBER'
+    }
+
+    static create(value) {
+        return new NumberVal().set('value', value)
+    }
+}
+
+class HashVal extends PrimitiveVal {
+    getType() {
+        return 'HASH'
+    }
+
+    static create(value) {
+        return new HashVal().set('value', value)
+    }
+}
+
+class PercentageVal extends PrimitiveVal {
+    getType() {
+        return 'PERCENTAGE'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: this.get('value'),
+            unit: this.get('unit')
+        }
+    }
+
+    static create(value) {
+        var result = value.match(/(([\+\-]?[0-9]+(\.[0-9]+)?)|([\+\-]?\.[0-9]+))([%])/)
+
+        return new PercentageVal()
+            .set('value', parseFloat(result[1]))
+            .set('unit', result[5])
+    }
+}
+
+class DimensionVal extends PrimitiveVal {
+    getType() {
+        return 'DIMENSION'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: this.get('value'),
+            unit: this.get('unit')
+        }
+    }
+
+    static create(value) {
+        var result = value.match(/(([\+\-]?[0-9]+(\.[0-9]+)?)|([\+\-]?\.[0-9]+))([a-zA-Z]+)/)
+
+        return new DimensionVal()
+            .set('value', parseFloat(result[1]))
+            .set('unit', result[5])
+    }
+}
+
+class IdentVal extends CSSObject {
+    getType() {
+        return 'ID'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            vendorPrefix: this.get('vendorPrefix', ''),
+            value: this.get('value')
+        }
+    }
+
+    static create(value) {
+        var result = value.match(/([-](webkit|moz|o|ms)[-])?([0-9a-zA-Z-]*)/)
+
+        return new IdentVal()
+            .set('vendorPrefix', result[1])
+            .set('value', result[3])
+    }
+}
+
+class UrlVal extends CSSObject {
+    getType() {
+        return 'URL'
+    }
+
+    static create(value) {
+        return new UrlVal().set('value', value)
+    }
+}
+
+class FunctionVal extends CSSObject {
+    getType() {
+        return 'FUNCTION'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            name: this.get('name'),
+            parameters:  toJSON(this.get('parameters'))
+        }
+    }
+
+    static create(name, parameters) {
+        return new FunctionVal()
+            .set('name', name)
+            .set('parameters', parameters)
+    }
+}
+
+class SequenceVal extends CSSObject {
+    getType() {
+        return 'SEQUENCE'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: this.get('value').map((o) => toJSON(o))
+        }
+    }
+
+    static create(list) {
+        if (typeof(list) == 'array' && list.length > 1){
+            return new SequenceVal().set('value', list)
+        }
+
+        return list
+    }
+}
+
+class Declaration extends CSSObject {
+    getType() {
+        return 'DECLARATION'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            property: toJSON(this.get('property')),
+            value:  toJSON(this.get('value')),
+            important: this.get('important', false)
+        }
+    }
+
+    static create(property, value) {
+        return new Declaration()
+            .set('property', property)
+            .set('value', value)
+    }
+}
+
+class DeclarationList extends CSSObject {
+    getType() {
+        return 'DECLARATION_LIST'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: this.get('value').map((o) => toJSON(o))
+        }
+    }
+
+    static create(value) {
+        return new DeclarationList()
+            // force value to array
+            .set('value', concat(value, []))
+    }
+}
+
+class QualifiedRule extends CSSObject {
+    getType() {
+        return 'QUALIFIED_RULE'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            selectors: toJSON(this.get('selectors')),
+            value: toJSON(this.get('value'))
+        }
+    }
+
+    static create(value) {
+        return new QualifiedRule()
+            .set('value', value)
+    }
+}
+
+class Expression extends CSSObject {
+    getType() {
+        return 'EXPRESSION'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            operator: this.get('operator'),
+            lhs: toJSON(this.get('lhs')),
+            rhs: toJSON(this.get('rhs'))
+        }
+    }
+
+    static create(operator, lhs, rhs) {
+        return new Expression()
+            .set('operator', operator)
+            .set('lhs', lhs)
+            .set('rhs', rhs)
+    }
+}
+
+
+class Selector extends CSSObject {
+    getType() {
+        return 'SELECTOR'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: toJSON(this.get('value')),
+            nextSelector: toJSON(this.get('nextSelector'))
+        }
+    }
+}
+
+class SelectorList extends Selector {
+    getType() {
+        return 'SELECTOR_LIST'
+    }
+
+    add(rootSelector) {
+        if (!this.value) {
+            this.value = []
+        }
+
+        this.value.push(rootSelector)
+
+        return this
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: this.get('value').map((o) => toJSON(o))
+        }
+    }
+
+    static create(value) {
+        return new SelectorList()
+    }
+}
+
+class RootSelector extends Selector {
+    getType() {
+        return 'SELECTOR_ROOT'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            value: toJSON(this.get('value'))
+        }
+    }
+
+    static create(value) {
+        return new RootSelector()
+            .set('value', value)
+    }
+}
+
+class SelectorCombinator extends Selector {
+    getType() {
+        return 'SELECTOR_COMBINATOR'
+    }
+
+    getRelation() {
+        return 'UNKNOWN'
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            relation: this.getRelation(),
+            value:  toJSON(this.get('value')),
+            nextSelector: toJSON(this.get('nextSelector'))
+        }
+    }
+
+    static create(value) {
+        return new SelectorCombinator()
+            .set('value', value)
+    }
+}
+
+class DescendantSelectorCombinator extends SelectorCombinator {
+    getRelation() {
+        return 'DESCEDANT'
+    }
+
+    static create(value) {
+        return new DescendantSelectorCombinator()
+            .set('value', value)
+    }
+}
+
+class ChildSelectorCombinator extends SelectorCombinator {
+    getRelation() {
+        return 'CHILD'
+    }
+
+    static create(value) {
+        return new ChildSelectorCombinator()
+            .set('value', value)
+    }
+}
+
+class AdjacentSiblingSelectorCombinator extends SelectorCombinator {
+    getRelation() {
+        return 'ADJACENT_SIBLING'
+    }
+
+    static create(value) {
+        return new AdjacentSiblingSelectorCombinator()
+            .set('value', value)
+    }
+}
+
+class SiblingSelectorCombinator extends SelectorCombinator {
+    getRelation() {
+        return 'SIBLING'
+    }
+
+    static create(value) {
+        return new SiblingSelectorCombinator()
+            .set('value', value)
+    }
+}
+
+class ClassSelector extends Selector {
+    getType() {
+        return 'CLASS_SELECTOR'
+    }
+
+    static create(value) {
+        return new ClassSelector()
+            .set('value', value)
+    }
+}
+
+class TypeSelector extends Selector {
+    getType() {
+        return 'TYPE_SELECTOR'
+    }
+
+    static create(value) {
+        return new TypeSelector()
+            .set('value', value)
+    }
+}
+
+class IdSelector extends Selector {
+    getType() {
+        return 'ID_SELECTOR'
+    }
+
+    static create(value) {
+        return new IdSelector()
+            .set('value', value)
+    }
+}
+
+class UniversalSelector extends Selector {
+    getType() {
+        return 'UNIVERSAL_SELECTOR'
+    }
+
+    static create(value) {
+        return new UniversalSelector()
+            .set('value', value)
+    }
+}

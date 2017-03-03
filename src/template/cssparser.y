@@ -1,5 +1,5 @@
 %{
-    @@include('../nodes/nodes.js')
+    @@include('../../dist/nodes/nodes.js')
 %}
 
 %start stylesheet

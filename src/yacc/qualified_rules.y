@@ -7,26 +7,19 @@
 ********************/
 
 QualifiedRule
-  : SelectorList DeclarationList
-    %{
-        $$ = {
-          type: CSS_RULE,
-          selectors: $1,
-          value: $2
-        }
-    }%
+  : SelectorList DeclarationList    -> QualifiedRule.create($2).set('selectors', $1)
   ;
 
 DeclarationList
-  : LEFT_CURLY_BRACKET Declaration RIGHT_CURLY_BRACKET     -> declarations(merge($2, []))
-  | LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET                 -> []
+  : LEFT_CURLY_BRACKET Declaration RIGHT_CURLY_BRACKET     -> DeclarationList.create($2)
+  | LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET                 -> DeclarationList.create()
   ;
 Declaration
   : DeclarationComponent
   | DeclarationComponent SEMICOLON
-  | DeclarationComponent SEMICOLON Declaration    -> merge($1, $3)
+  | DeclarationComponent SEMICOLON Declaration    -> concat($1, $3)
   ;
 DeclarationComponent
-  : PropertyName COLON PropertyValue IMPORTANT   -> cssDeclarationVal($1, $3, $4)
-  | PropertyName COLON PropertyValue             -> cssDeclarationVal($1, $3)
+  : PropertyName COLON PropertyValue IMPORTANT   -> Declaration.create($1, $3).set('important', true)
+  | PropertyName COLON PropertyValue             -> Declaration.create($1, $3)
   ;
