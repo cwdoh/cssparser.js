@@ -50,16 +50,16 @@ Selector
   | ClassSelector
   | TypeSelector
   | IdSelector
-  | SelectorAttr
-  | SelectorPseudoClass     -> selectorComponent(PSEUDO_CLASS, $1)
-  | SelectorPseudoElement   -> selectorComponent(PSEUDO_ELEMENT, $1)
+  | AttributeSelector
+  | PseudoClassSelector
+  | PseudoElementSelector
   ;
 UniversalSelector
   : ASTERISK                -> UniversalSelector.create($1)
   ;
 IdSelector
-  : HASH_STRING             -> IdSelector.create(hashVal($1))
-  | HEXA_NUMBER             -> IdSelector.create(hashVal($1))
+  : HASH_STRING             -> IdSelector.create(HashVal.create($1))
+  | HEXA_NUMBER             -> IdSelector.create(HashVal.create($1))
   ;
 TypeSelector
   : GENERAL_IDENT           -> TypeSelector.create($1)
@@ -75,52 +75,31 @@ DescendantSelector
   : ASTERISK_WITH_WHITESPACE        -> UniversalSelector.create($1.trimRight())
   | SELECTOR_TYPE_WITH_WHITESPACE   -> TypeSelector.create($1.trimRight())
   | SELECTOR_CLASS_WITH_WHITESPACE  -> ClassSelector.create($1.trimRight())
-  | SELECTOR_ID_WITH_WHITESPACE     -> IdSelector.create(hashVal($1.trimRight()))
+  | SELECTOR_ID_WITH_WHITESPACE     -> IdSelector.create(HashVal.create($1.trimRight()))
   ;
-SelectorAttr
-  : LEFT_SQUARE_BRACKET IDENT SelectorAttrOperator GenericVal RIGHT_SQUARE_BRACKET
-    %{
-      $$ = {
-        type: ATTRIBUTE,
-        value: $2,
-        expression: {
-          type: EXPRESSION,
-          operator: $3,
-          value: $4
-        }
-      }
-    }%
-  | LEFT_SQUARE_BRACKET IDENT RIGHT_SQUARE_BRACKET
-    %{
-      $$ = selectorComponent(ATTR_SELECTOR, {
-        type: ATTRIBUTE,
-        value: $2
-      })
-    }%
+AttributeSelector
+  : LEFT_SQUARE_BRACKET IdentVal SelectorAttrOperator GenericVal RIGHT_SQUARE_BRACKET   -> AttributeSelector.create(Expression.create($3, $2, $4))
+  | LEFT_SQUARE_BRACKET IdentVal RIGHT_SQUARE_BRACKET                                   -> AttributeSelector.create($2)
   ;
 SelectorAttrOperator
-  : INCLUDE_MATCH       -> defVariable('include', $1)
-  | DASH_MATCH	        -> defVariable('dash', $1)
-  | PREFIX_MATCH        -> defVariable('prefix', $1)
-  | SUFFIX_MATCH        -> defVariable('suffix', $1)
-  | SUBSTRING_MATCH     -> defVariable('substring', $1)
-  | ASSIGN_MARK         -> defVariable('equal', $1)
+  : INCLUDE_MATCH       -> Operator.create($1)		/* include   */
+  | DASH_MATCH	        -> Operator.create($1)		/* dash      */
+  | PREFIX_MATCH        -> Operator.create($1)		/* prefix    */
+  | SUFFIX_MATCH        -> Operator.create($1)		/* suffix    */
+  | SUBSTRING_MATCH     -> Operator.create($1)		/* substring */
+  | ASSIGN_MARK         -> Operator.create($1)		/* equal     */
   ;
-SelectorPseudoElement
-  : COLON COLON IdentVal
-    %{
-      $$ = $3
-      $$.prefix = $1 + $2
-    }%
+PseudoElementSelector
+  : COLON COLON IdentVal   -> PseudoElementSelector.create($3)
   ;
 
-SelectorPseudoClassList
-  : SelectorPseudoClass                           -> [defVariable(PSEUDO_CLASS, $1)]
-  | SelectorPseudoClassList SelectorPseudoClass   -> merge($1, defVariable(PSEUDO_CLASS, $1))
+PseudoClassSelectorList
+  : PseudoClassSelector
+  | PseudoClassSelector PseudoClassSelectorList   -> $1.set('nextSelector', $2)
   ;
-SelectorPseudoClass
-  : COLON IDENT               -> { prefix: $1, name: $2 }
-  | COLON PseudoClassFunc     -> { prefix: $1, name: $2 }
+PseudoClassSelector
+  : COLON IdentVal            -> PseudoClassSelector.create($2)
+  | COLON PseudoClassFunc     -> PseudoClassSelector.create($2)
   ;
 
 PseudoClassFunc
@@ -132,10 +111,10 @@ PseudoClassFuncParam
   | PseudoClassFuncParam_an_plus_b
   ;
 PseudoClassFuncParam_an_plus_b
-  : N                                     /* n */
-  | N PLUS_SIGN NUMBER                    /* n + 1 */
-  | HYPHEN_MINUS N PLUS_SIGN NUMBER       /* -n + 1 */
-  | NUMBER                                /* 1 */
-  | DIMENSION                             /* 2n or -2n */
-  | HYPHEN_MINUS NUMBER N                 /* -n + 1 */
+  : N                                     -> $1             /* n */
+  | N PLUS_SIGN NUMBER                    -> $1 + $2 + $3   /* n + 1 */
+  | HYPHEN_MINUS N PLUS_SIGN NUMBER       -> $1 + $2 + $3   /* -n + 1 */
+  | NUMBER                                -> $1             /* 1 */
+  | DIMENSION                             -> $1             /* 2n or -2n */
+  | HYPHEN_MINUS NUMBER N                 -> $1 + $2        /* -n + 1 */
   ;

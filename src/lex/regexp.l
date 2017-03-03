@@ -5,6 +5,7 @@ hexdigit	                [0-9a-fA-F]
 /*escape                    \\{hexdigit}{1,6}{whitespace}|\\[^{newline}|{hexdigit}]*/
 escape	                	{unicode}|\\[ -~\200-\377]
 
+alphabet                    [a-zA-Z]
 nonascii                   	[\200-\377]
 unicode	                    \\{h}{1,6}[ \t\r\n\f]?
 nmstart             		[a-zA-Z]|{nonascii}|{escape}

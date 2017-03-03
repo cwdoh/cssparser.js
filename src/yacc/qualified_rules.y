@@ -20,6 +20,10 @@ Declaration
   | DeclarationComponent SEMICOLON Declaration    -> concat($1, $3)
   ;
 DeclarationComponent
-  : PropertyName COLON PropertyValue IMPORTANT   -> Declaration.create($1, $3).set('important', true)
-  | PropertyName COLON PropertyValue             -> Declaration.create($1, $3)
+  : DeclarationMandatoryComponent
+  | DeclarationMandatoryComponent IMPORTANT   -> $1.set('important', true)
+  ;
+DeclarationMandatoryComponent
+  : PropertyName COLON PropertyValue REVERSE_SOLIDUS NUMBER   -> Declaration.create($1, $3).set('ieOnlyHack', true)
+  | PropertyName COLON PropertyValue                          -> Declaration.create($1, $3)
   ;

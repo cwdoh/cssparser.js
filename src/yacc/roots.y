@@ -3,30 +3,21 @@
 ********************/
 
 stylesheet
-  : stylesheet_list EOF
+  : StylesheetList EOF
     %{
+      console.log(JSON.stringify($1.toJSON(), null, 4))
       $$ = $1
     }%
   ;
 
-stylesheet_list
-  : stylesheet_component                    -> StyleSheet.create().add($1)
-  | stylesheet_list stylesheet_component    -> $1.add($2)
+StylesheetList
+  : StylesheetComponent                   -> StyleSheet.create().add($1)
+  | StylesheetList StylesheetComponent    -> $1.add($2)
   ;
 
-stylesheet_component
+StylesheetComponent
   : CDO
   | CDC
   | QualifiedRule
-  | at_rule
-  ;
-
-rule_list
-  : rule_list_component                   -> [$1]
-  | rule_list_component rule_list         -> concat($1, $2)
-  ;
-
-rule_list_component
-  : QualifiedRule
-  | at_rule
+  | AtRule
   ;

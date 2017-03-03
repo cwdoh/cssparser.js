@@ -6,123 +6,131 @@
 ** [1] https://developer.mozilla.org/en-US/docs/Web/CSS/At-rule
 ********************/
 
-at_rule
-  : at_rule_simple SEMICOLON
-  | at_rule_nested
-  | at_rule_font_face
+RuleList
+  : RuleListComponent                   -> [$1]
+  | RuleListComponent RuleList         -> concat($1, $2)
   ;
 
-at_rule_simple
-  : at_rule_charset
-  | at_rule_import
-  | at_rule_namespace
+RuleListComponent
+  : QualifiedRule
+  | AtRule
   ;
 
-at_rule_charset
-  : AT_CHARSET StringVal     -> atRule($1, $2)
-  ;
-at_rule_import
-  : AT_IMPORT UrlOrStringVal                              -> atRule($1, $2)
-  | AT_IMPORT UrlOrStringVal MediaQueryList             -> atRule($1, $2, 'mediaQueries', $3)
-  ;
-at_rule_namespace
-  : AT_NAMESPACE UrlOrStringVal               -> atRule($1, $2)
-  | AT_NAMESPACE IDENT UrlOrStringVal         -> atRule($1, $3, 'prefix', $2)
+RuleBlock
+  : LEFT_CURLY_BRACKET RuleList RIGHT_CURLY_BRACKET          -> $2
+  | LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET                   -> null
   ;
 
-at_rule_nested
-  : at_rule_nested_frontpart rule_block -> addProp($1, 'nestedRules', $2)
-  | at_rule_keyframes
-  | at_rule_page
+AtRule
+  : AtSimpleRules SEMICOLON
+  | AtNestedRule
+  | AtFontface
+  | AtKeyframes
+  | AtPage
   ;
 
-at_rule_nested_frontpart
-  : at_rule_media
-  | at_rule_document
-  | at_rule_supports
+AtSimpleRules
+  : AtRuleCharset
+  | AtImport
+  | AtNamespace
   ;
 
-at_rule_media
-  : AT_MEDIA MediaQueryList   -> atRule($1, null, 'mediaQueries', $2)
+AtRuleCharset
+  : AT_CHARSET StringVal     -> AtCharset.create($1).set('value', $2)
+  ;
+AtImport
+  : AT_IMPORT UrlOrStringVal                  -> AtImport.create($1).set('value', $2)
+  | AT_IMPORT UrlOrStringVal MediaQueryList   -> AtImport.create($1).set('value', $2).set('nextExpression', $3)
+  ;
+AtNamespace
+  : AT_NAMESPACE UrlOrStringVal               -> AtNamespace.create($1).set('value', $2)
+  | AT_NAMESPACE IDENT UrlOrStringVal         -> AtNamespace.create($1).set('prefix', $2).set('value', $3)
   ;
 
-rule_block
-  : LEFT_CURLY_BRACKET rule_list RIGHT_CURLY_BRACKET          -> $2
-  | LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET                    -> null
+AtNestedRule
+  : AtNestedRuleComponent RuleBlock -> $1.set('nestedRules', $2)
   ;
 
-at_rule_keyframes
-  : AT_KEYFRAMES keyframes_name keyframes_block   -> atRule($1, $3, 'name', $2)
+AtNestedRuleComponent
+  : AtMedia
+  | AtDocument
+  | AtSupport
   ;
-keyframes_block
-  : LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET                        -> null
-  | LEFT_CURLY_BRACKET keyframes_block_list RIGHT_CURLY_BRACKET   -> $2
+
+AtMedia
+  : AT_MEDIA MediaQueryList   -> AtMedia.create($1).set('value', $2)
   ;
-keyframes_block_list
-  : keyframes_block
-  | keyframes_block_list keyframes_block  -> merge($1, $2)
+
+AtKeyframes
+  : AT_KEYFRAMES AtKeyframesName LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET                        -> AtKeyframes.create($1).set('name', $2)
+  | AT_KEYFRAMES AtKeyframesName LEFT_CURLY_BRACKET AtKeyframesBlockList RIGHT_CURLY_BRACKET   -> AtKeyframes.create($1).set('name', $2).set('value', $4)
   ;
-keyframes_block
-  : keyframes_selector DeclarationList       -> keyframesVal($1, $2)
+AtKeyframesBlockList
+  : AtKeyframesBlock                        -> AtKeyframesBlockList.create().add($1)
+  | AtKeyframesBlockList AtKeyframesBlock   -> $1.add($2)
   ;
-keyframes_name
+AtKeyframesBlock
+  : AtKeyframesSelector DeclarationList       -> AtKeyframesBlock.create($1).set('value', $2)
+  ;
+AtKeyframesName
   : IdentVal
   | StringVal
   ;
-keyframes_selector
+AtKeyframesSelector
   : IdentVal
   | PercentageVal
   ;
 
 /* TODO: I don't understand @page rules deeply. */
-at_rule_page
-  : at_rule_page_frontpart DeclarationList   -> addProp($1, 'value', $2)
+AtPage
+  : AtPageComponent DeclarationList   -> $1.set('nestedRules', $2)
   ;
 
-at_rule_page_frontpart
-  : AT_PAGE                   -> atRule($1, null)
-  | AT_PAGE SelectorPseudoClassList   -> atRule($1, null, 'pseudoClasses', $2)
+AtPageComponent
+  : AT_PAGE                           -> AtPage.create($1)
+  | AT_PAGE PseudoClassSelectorList   -> AtPage.create($1).set('value', $2)
   ;
 
-at_rule_document
-  : AT_DOCUMENT AtDocumentFuncValList -> atRule($1, null, 'value', functionVal($2))
+AtDocument
+  : AT_DOCUMENT AtDocumentFuncValList -> AtDocument.create($1).set('value', $2)
   ;
 AtDocumentFuncValList
-  : AtDocumentFuncVal
-  | AtDocumentFuncValList COMMA AtDocumentFuncVal   -> merge($1, $3)
+  : AtDocumentFuncVal                               -> concat($1, [])
+  | AtDocumentFuncValList COMMA AtDocumentFuncVal   -> concat($1, $3)
   ;
 AtDocumentFuncVal
-  : URL_FUNC            -> functionVal('url', $1)
-  | URL_PREFIX_FUNC     -> functionVal('url-prefix', $1)
-  | DOMAIN_FUNC         -> functionVal('domain', $1)
-  | REGEXP_FUNC         -> functionVal('regexp', $1)
+  : URL_FUNC            -> FunctionVal.create('url', $1)
+  | URL_PREFIX_FUNC     -> FunctionVal.create('url-prefix', $1)
+  | DOMAIN_FUNC         -> FunctionVal.create('domain', $1)
+  | REGEXP_FUNC         -> FunctionVal.create('regexp', $1)
   ;
 
-at_rule_font_face
-  : AT_FONT_FACE DeclarationList   -> { type: FONT_FACE, value: $2 }
+AtFontface
+  : AT_FONT_FACE DeclarationList   -> AtFontface.create($1).set('value', $2)
   ;
 
 /* TODO: I don't understand @supports rules deeply. */
-at_rule_supports
-  : AT_SUPPORTS supports_expression_list   -> atRule($1, null, 'expressions', $2)
+AtSupport
+  : AT_SUPPORTS AtSupportExpressionList   -> AtSupport.create($1).set('value', $2)
   ;
 
-supports_expression_list
-  : supports_expression
-  | supports_expression_list supports_and_or_expression  -> merge($1, $2)
+AtSupportExpressionList
+  : AtSupportExpression
+  | AtSupportExpressionList AndOrOperator AtSupportExpression
+    %{
+      $$ = $1
+      $1.set('nextExpression', $2)
+      $2.set('nextExpression', $3)
+    }%
   ;
-supports_and_or_expression
-  : OperatorAndOr supports_expression                                -> { operator: $1, expression: $2 }
+AtSupportExpression
+  : AtSupportExpressionComponent
+  | OPERATOR_NOT AtSupportExpressionComponent     -> $2.set('operator', $1)
   ;
-supports_expression
-  : supports_expression_body                  -> { value: $1 }
-  | OPERATOR_NOT supports_expression_body     -> { value: $2, not: true }
+AndOrOperator
+  : OPERATOR_AND      -> Operator.create($1)
+  | OPERATOR_OR       -> Operator.create($1)
   ;
-OperatorAndOr
-  : OPERATOR_AND
-  | OPERATOR_OR
-  ;
-
-supports_expression_body
-  : LEFT_PARENTHESIS ComponentName COLON DeclarationPropValList RIGHT_PARENTHESIS   -> { property: $2, value: $4 }
+AtSupportExpressionComponent
+  : LEFT_PARENTHESIS PropertyName COLON PropertyValue RIGHT_PARENTHESIS   -> AtSupportExpression.create().set('property', $2).set('value', $4)
   ;

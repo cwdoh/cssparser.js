@@ -32,7 +32,7 @@
 [#]{ident}                          {return _token('HASH_STRING');}
 [#]{hexdigit}+                      {return _token('HEXA_NUMBER');}
 
-{number}{ident}                     {return _token('DIMENSION');}               /* ref. https://developer.mozilla.org/en-US/docs/Web/CSS/length */
+{number}{alphabet}+                 {return _token('DIMENSION');}               /* ref. https://developer.mozilla.org/en-US/docs/Web/CSS/length */
 {number}"%"                         {return _token('PERCENTAGE');}
 {number}                            {return _token('NUMBER');}
 
@@ -52,7 +52,6 @@
 "-->"								{return _token('CDC');}					/* comment delimiter close */
 
 \=                                  {return _token('ASSIGN_MARK');}
-\\									{return _token('QUOTATION_MARK');}
 \#									{return _token('NUMBER_SIGN');}
 \$									{return _token('DOLLAR_SIGN');}
 \‘									{return _token('APOSTROPHE');}
