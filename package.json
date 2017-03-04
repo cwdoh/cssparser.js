@@ -57,7 +57,7 @@
     "test-deep": "node lib/cli.js test/test.css -c -t deep",
     "test-atomic": "node lib/cli.js test/test.css -c -t deep",
     "test-all": "npm run test-simple && npm run test-deep && npm run test-atomic",
-    "copy-web": "cp ./lib/cssparser.js ./web/",
+    "copy-web": "cp ./lib/cssparser.js ./demo/",
     "release": "npm run build && npm run copy-web",
     "test": "npm run release && npm run test-all"
   },
