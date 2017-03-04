@@ -7,14 +7,13 @@ FunctionVal
   ;
 
 FUNCTION
-  : IDENT LEFT_PARENTHESIS
-  | OPERATOR_NOT LEFT_PARENTHESIS
+  : IdentVal LEFT_PARENTHESIS
+  | OPERATOR_NOT LEFT_PARENTHESIS     -> IdentVal.create($1)
   ;
 
 FunctionParameters
-  : PropertyValueItem                               -> [$1]
-  | FunctionParameters COMMA PropertyValueItem      -> concat($1, $3)
-  | IDENT ASSIGN_MARK GenericNumericVal             -> [Expression.create($2, $1, $3)]    /* same as `Expression.create().set('operator', $2).set('lhs', $1).set('rhs', $3)` */
+  : PropertyValue                               -> $1
+  | IDENT ASSIGN_MARK GenericNumericVal         -> Expression.create($2, $1, $3)    /* same as `Expression.create().set('operator', $2).set('lhs', $1).set('rhs', $3)` */
   ;
 
 /********************

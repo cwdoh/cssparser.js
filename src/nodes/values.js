@@ -112,8 +112,23 @@ class UrlVal extends CSSObject {
         return 'URL'
     }
 
+    toJSON() {
+        return {
+            type: this.getType(),
+            name: toJSON(this.get('name', null)),
+            value: toJSON(this.get('value', null))
+        }
+    }
+
     static create(value) {
-        return new UrlVal().set('value', value)
+        var urlVal = new UrlVal()
+        var result = value.match(/([0-9a-zA-Z\-]+)\((.+)\)/)
+
+        if (result) {
+            urlVal.set('name', IdentVal.create(result[1].trim()))
+            urlVal.set('value', result[2].trim())
+        }
+        return urlVal
     }
 }
 
@@ -138,8 +153,18 @@ class FunctionVal extends CSSObject {
 }
 
 class SequenceVal extends CSSObject {
+    constructor() {
+        super()
+        this.value = new Array()
+    }
+
     getType() {
         return 'SEQUENCE'
+    }
+
+    add(value) {
+        this.value.push(value)
+        return this
     }
 
     toJSON() {
@@ -149,11 +174,7 @@ class SequenceVal extends CSSObject {
         }
     }
 
-    static create(list) {
-        if (typeof(list) == 'array' && list.length > 1){
-            return new SequenceVal().set('value', list)
-        }
-
-        return list
+    static create(item) {
+        return new SequenceVal().add(item)
     }
 }
