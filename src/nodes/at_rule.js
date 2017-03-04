@@ -10,11 +10,22 @@ class AtRule extends CSSObject {
             value: toJSON(this.get('value', null))
         }
     }
+
+    setRule(rule) {
+        const regexp = /@(.+)/
+        var result = rule.match(regexp)
+
+        if (result) {
+            this.set('rule', IdentVal.create(result[1]))
+        }
+
+        return this
+    }
 }
 
 class AtCharset extends AtRule {
     static create(rule) {
-        return new AtCharset().set('rule', rule)
+        return new AtCharset().setRule(rule)
     }
 }
 
@@ -27,7 +38,7 @@ class AtImport extends AtRule {
     }
 
     static create(rule) {
-        return new AtImport().set('rule', rule)
+        return new AtImport().setRule(rule)
     }
 }
 
@@ -40,13 +51,13 @@ class AtNamespace extends AtRule {
     }
 
     static create(rule) {
-        return new AtNamespace().set('rule', rule)
+        return new AtNamespace().setRule(rule)
     }
 }
 
 class AtFontface extends AtRule {
     static create(rule) {
-        return new AtFontface().set('rule', rule)
+        return new AtFontface().setRule(rule)
     }
 }
 
@@ -61,19 +72,21 @@ class AtNestedRule extends AtRule {
 
 class AtMedia extends AtNestedRule {
     static create(rule) {
-        return new AtMedia().set('rule', rule)
+        return new AtMedia().setRule(rule)
     }
 }
 
-class AtKeyframes extends CSSObject {
+class AtKeyframes extends AtRule {
     toJSON() {
         var json = super.toJSON()
 
         json.name = toJSON(this.get('name'))
+
+        return json
     }
 
     static create(rule) {
-        return new AtKeyframes().set('rule', rule)
+        return new AtKeyframes().setRule(rule)
     }
 }
 
@@ -100,7 +113,7 @@ class AtKeyframesBlockList extends CSSObject {
         }
     }
 
-    static create(selector) {
+    static create() {
         return new AtKeyframesBlockList()
     }
 }
@@ -133,7 +146,7 @@ class AtSupport extends AtNestedRule {
     }
 
     static create(rule) {
-        return new AtSupport().set('rule', rule)
+        return new AtSupport().setRule(rule)
     }
 }
 
@@ -158,12 +171,12 @@ class AtSupportExpression extends CSSObject {
 
 class AtPage extends AtNestedRule {
     static create(rule) {
-        return new AtPage().set('rule', rule)
+        return new AtPage().setRule(rule)
     }
 }
 
 class AtDocument extends AtNestedRule {
     static create(rule) {
-        return new AtDocument().set('rule', rule)
+        return new AtDocument().setRule(rule)
     }
 }

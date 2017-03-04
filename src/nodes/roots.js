@@ -4,7 +4,7 @@ class CSSObject {
     }
 
     set(key, value) {
-        if (value || value == false || value == 0) {
+        if (value || value !== undefined) {
             this[key] = value
         }
         return this
@@ -23,7 +23,6 @@ class CSSObject {
             value: toJSON(this.get('value'))
         }
     }
-
 
     static create(value) {
         return (new CSSObject()).set('value', value)
