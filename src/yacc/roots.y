@@ -4,10 +4,9 @@
 
 stylesheet
   : StylesheetList EOF
-    %{
-      console.log(JSON.stringify($1.toJSON(), null, 4))
-      $$ = $1
-    }%
+    {
+      return $1
+    }
   ;
 
 StylesheetList

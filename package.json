@@ -52,12 +52,14 @@
   "scripts": {
     "es6": "gulp merge-js && babel dist/js -d dist/babel",
     "generate": "gulp merge-jison && jison dist/jison/cssparser.y dist/jison/css.l -o lib/cssparser.js",
-    "simple-test": "node lib/cli.js test/test.css -c",
-    "copy-web": "cp ./lib/cssparser.js ./web/",
     "build": "npm run es6 && npm run generate",
-    "test": "npm run build && npm run simple-test",
+    "test-simple": "node lib/cli.js test/test.css -c -t simple",
+    "test-deep": "node lib/cli.js test/test.css -c -t deep",
+    "test-atomic": "node lib/cli.js test/test.css -c -t deep",
+    "test-all": "npm run test-simple && npm run test-deep && npm run test-atomic",
+    "copy-web": "cp ./lib/cssparser.js ./web/",
     "release": "npm run build && npm run copy-web",
-    "test-only": "npm run simple-test"
+    "test": "npm run release && npm run test-all"
   },
   "homepage": "https://cwdoh.github.io/cssparser.js/",
   "optionalDependencies": {},
