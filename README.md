@@ -58,8 +58,11 @@ You can generate javascript object from your javascript module.
 	// create new instance of Parser
 	var parser = new cssparser.Parser();
 	
-	// parse & getting json
-	var json = parser.parse( cssText );
+	// parse
+    var ast = parser.parse(raw)
+
+    // getting json
+    var json = ast.toJSON(type)
 
 
 ##Generating parser from source

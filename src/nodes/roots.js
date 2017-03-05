@@ -1,6 +1,5 @@
 class CSSObject {
     constructor() {
-        this.hash = Math.random()
         this._props_ = {}
     }
 
@@ -61,10 +60,7 @@ class CSSObject {
     }
 
     toSimpleJSON() {
-        var self = this
-        return Object.keys(this._props_).map(
-            (key) => toSimple(this.get(key, null))
-        )
+        return toSimple(this.get('value'))
     }
 
     toJSON(level) {
@@ -86,10 +82,6 @@ class CSSObject {
 class StyleSheet extends CSSObject {
     constructor() {
         super()
-    }
-
-    toSimpleJSON() {
-        return toSimple(this.get('value'))
     }
 
     getType(type) {

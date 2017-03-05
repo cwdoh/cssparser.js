@@ -24,20 +24,29 @@
         };
         var treeEditor = new JSONEditor(document.getElementById("json"), treeOptions);
 
-        document.getElementById("button").onclick = function() {
+        var transform = function(type) {
           try {
             var sourceText = sourceEditor.getText()
-            var result = cssparser.parse(sourceText);
-            if (result) {
+            var ast = cssparser.parse(sourceText);
+            if (ast) {
               document.getElementById("result").innerHTML = "CSS is valid!";
               document.getElementById("result").className = "pass";
 
-              treeEditor.set(result);
+              treeEditor.set(ast.toJSON(type));
             }
           } catch (e) {
             document.getElementById("result").innerHTML = e;
             document.getElementById("result").className = "fail";
           }
+        }
+        document.getElementById("button-atomic").onclick = function() {
+          transform('atomic')
+        };
+        document.getElementById("button-deep").onclick = function() {
+          transform('deep')
+        };
+        document.getElementById("button-simple").onclick = function() {
+          transform('simple')
         };
 
         // load CSS preset for testing.
@@ -115,7 +124,9 @@
       <div id="json" class="editor right"></div>
     </div>
     <div class="controls">
-      <button id="button">Transform</button>
+      <button id="button-atomic">Transform (Atomic)</button>
+      <button id="button-deep">Transform (Deep)</button>
+      <button id="button-simple">Transform (Simple)</button>
       <h2>Results</h2>
       <pre id="result"></pre>
     </div>
