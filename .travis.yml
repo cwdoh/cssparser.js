@@ -1,0 +1,17 @@
+git:
+  depth: 10
+sudo: false
+language: node_js
+cache:
+  directories:
+  - node_modules
+node_js:
+  - '7'
+  - '6'
+  - '4'
+
+env:
+  - JOB=test
+
+script:
+  - 'if [ "$JOB" = "test" ]; then npm run test; fi'

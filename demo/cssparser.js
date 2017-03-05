@@ -224,7 +224,7 @@ break;
 case 93:
 this.$ = MediaQueryList.create().add($$[$0]);
 break;
-case 94: case 119:
+case 94:
 this.$ = $$[$0-2].add($$[$0]);
 break;
 case 96:
@@ -279,7 +279,10 @@ case 117:
 this.$ = Declaration.create($$[$0-2], $$[$0]);
 break;
 case 118:
-this.$ = SelectorList.create().add($$[$0]);
+this.$ = SelectorList.create().add(RootSelector.create($$[$0]));
+break;
+case 119:
+this.$ = $$[$0-2].add(RootSelector.create($$[$0]));
 break;
 case 121:
 
@@ -589,93 +592,17 @@ var concat = function concat(l, r) {
     return l.concat(r);
 };
 
-var stripFalsy = function stripFalsy(o) {
-    for (var k in o) {
-        if (!o[k]) {
-            delete o[k];
-        }
-    }
-
-    return o;
-};
-
-var mixin = function mixin(target, source) {
-    for (var prop in source) {
-        if (prop in target) {
-            target[prop] = concat(target[prop], source[prop]);
-        } else {
-            target[prop] = source[prop];
-        }
-    }
-
-    return target;
-};
-
-var isArray = function isArray(o) {
-    return Object.prototype.toString.call(o) === '[object Array]';
-};
-
-var toAtomic = function toAtomic(o) {
-    if (o instanceof CSSObject) {
-        return o.toAtomicJSON();
-    } else if (isArray(o)) {
-        return o.map(function (item) {
-            return toAtomic(item);
-        });
-    }
-
-    return o;
-};
-
-var toDeep = function toDeep(o) {
-    if (o instanceof CSSObject) {
-        return o.toDeepJSON();
-    } else if (isArray(o)) {
-        return o.map(function (item) {
-            return toDeep(item);
-        });
-    }
-
-    return o;
-};
-
-var toSimple = function toSimple(o) {
-    if (o instanceof CSSObject) {
-        return o.toSimpleJSON();
-    } else if (isArray(o)) {
-        return o.map(function (item) {
-            return toSimple(item);
-        });
-    }
-
-    return o;
-};
-
-var toJSON = function toJSON(o, level) {
-    level = level.toLowerCase();
-
+var _toJSON = function _toJSON(o) {
     if (!o) {
         return o;
     }
 
-    switch (level) {
-        case 'atomic':
-            return toAtomic(o);
-        case 'deep':
-            return toDeep(o);
-        case 'simple':
-            return toSimple(o);
-    }
-
-    return o;
+    return o.hasOwnProperty('toJSON') ? o.toJSON() : o;
 };
 
 var CSSObject = function () {
     function CSSObject() {
         _classCallCheck(this, CSSObject);
-
-        this.hash = Math.random();
-        this._props_ = {};
     }
 
     _createClass(CSSObject, [{
@@ -687,84 +614,25 @@ var CSSObject = function () {
         key: 'set',
         value: function set(key, value) {
             if (value || value !== undefined) {
-                this._props_[key] = value;
+                this[key] = value;
             }
             return this;
         }
     }, {
         key: 'get',
         value: function get(key, defaultValue) {
-            if (key in this._props_) {
-                return this._props_[key];
+            if (key in this) {
+                return this[key];
             }
             return defaultValue;
         }
     }, {
-        key: 'add',
-        value: function add(component, prop) {
-            prop = prop || 'value';
-
-            if (component) {
-                var source = this.get(prop, []);
-                source.push(component);
-                this.set(prop, source);
-            }
-
-            return this;
-        }
-    }, {
-        key: 'toAtomicJSON',
-        value: function toAtomicJSON() {
-            var _this = this;
-
-            var json = {
-                type: this.getType()
-            };
-
-            var self = this;
-            Object.keys(this._props_).map(function (key) {
-                json[key] = toAtomic(_this.get(key, null));
-            });
-
-            return json;
-        }
-    }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            var _this2 = this;
-
-            var json = {
-                type: this.getType()
-            };
-
-            var self = this;
-            Object.keys(this._props_).map(function (key) {
-                json[key] = toDeep(_this2.get(key, null));
-            });
-
-            return json;
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var _this3 = this;
-
-            var self = this;
-            return Object.keys(this._props_).map(function (key) {
-                return toSimple(_this3.get(key, null));
-            });
-        }
-    }, {
         key: 'toJSON',
-        value: function toJSON(level) {
-            switch (level) {
-                case 'atomic':
-                    return toAtomic(this);
-                case 'deep':
-                    return toDeep(this);
-                case 'simple':
-                    return toSimple(this);
-            }
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: _toJSON(this.get('value'))
+            };
         }
     }], [{
         key: 'create',
@@ -782,18 +650,39 @@ var StyleSheet = function (_CSSObject) {
     function StyleSheet() {
         _classCallCheck(this, StyleSheet);
 
-        return _possibleConstructorReturn(this, (StyleSheet.__proto__ || Object.getPrototypeOf(StyleSheet)).call(this));
+        return _possibleConstructorReturn(this, (StyleSheet.__proto__ || Object.getPrototypeOf(StyleSheet)).apply(this, arguments));
     }
 
     _createClass(StyleSheet, [{
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return toSimple(this.get('value'));
-        }
-    }, {
         key: 'getType',
         value: function getType(type) {
             return 'STYLESHEET';
+        }
+    }, {
+        key: 'add',
+        value: function add(component) {
+            if (!this.value) {
+                this.value = [];
+            }
+
+            if (component) {
+                this.value.push(component);
+            }
+
+            return this;
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = [];
+            var components = this.get('value', []);
+
+            return {
+                type: this.getType(),
+                value: components.map(function (o) {
+                    return _toJSON(o);
+                })
+            };
         }
     }], [{
         key: 'create',
@@ -820,13 +709,10 @@ var Operator = function (_CSSObject2) {
             return 'OPERATOR';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var json = toSimple(this.get('value'));
-            var nextExpression = this.get('nextExpression');
-            if (nextExpression) {
-                json += ' ' + toSimple(nextExpression);
-            }
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(Operator.prototype.__proto__ || Object.getPrototypeOf(Operator.prototype), 'toJSON', this).call(this);
+            json.nextExpression = _toJSON(this.get('nextExpression', null));
 
             return json;
         }
@@ -855,12 +741,14 @@ var Expression = function (_CSSObject3) {
             return 'EXPRESSION';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return;
-            toSimple(this.get('lhs'))
-            // for beautify
-            + ' ' + toSimple(this.get('operator')) + ' ' + toSimple(this.get('rhs'));
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                operator: this.get('operator'),
+                lhs: _toJSON(this.get('lhs')),
+                rhs: _toJSON(this.get('rhs'))
+            };
         }
     }], [{
         key: 'create',
@@ -872,8 +760,32 @@ var Expression = function (_CSSObject3) {
     return Expression;
 }(CSSObject);
 
-var PrimitiveVal = function (_CSSObject4) {
-    _inherits(PrimitiveVal, _CSSObject4);
+var StringVal = function (_CSSObject4) {
+    _inherits(StringVal, _CSSObject4);
+
+    function StringVal() {
+        _classCallCheck(this, StringVal);
+
+        return _possibleConstructorReturn(this, (StringVal.__proto__ || Object.getPrototypeOf(StringVal)).apply(this, arguments));
+    }
+
+    _createClass(StringVal, [{
+        key: 'getType',
+        value: function getType() {
+            return 'STRING';
+        }
+    }], [{
+        key: 'create',
+        value: function create(value) {
+            return new StringVal().set('value', value);
+        }
+    }]);
+
+    return StringVal;
+}(CSSObject);
+
+var PrimitiveVal = function (_CSSObject5) {
+    _inherits(PrimitiveVal, _CSSObject5);
 
     function PrimitiveVal() {
         _classCallCheck(this, PrimitiveVal);
@@ -887,14 +799,12 @@ var PrimitiveVal = function (_CSSObject4) {
             return 'PRIMITIVE_VALUE';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return this.get('value');
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: this.get('value')
+            };
         }
     }]);
 
@@ -918,7 +828,7 @@ var NumberVal = function (_PrimitiveVal) {
     }], [{
         key: 'create',
         value: function create(value) {
-            return new NumberVal().set('value', parseFloat(value));
+            return new NumberVal().set('value', value);
         }
     }]);
 
@@ -949,51 +859,8 @@ var HashVal = function (_PrimitiveVal2) {
     return HashVal;
 }(PrimitiveVal);
 
-var UnitVal = function (_PrimitiveVal3) {
-    _inherits(UnitVal, _PrimitiveVal3);
-
-    function UnitVal() {
-        _classCallCheck(this, UnitVal);
-
-        return _possibleConstructorReturn(this, (UnitVal.__proto__ || Object.getPrototypeOf(UnitVal)).apply(this, arguments));
-    }
-
-    _createClass(UnitVal, [{
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return this.get('value') + this.get('unit', '');
-        }
-    }]);
-
-    return UnitVal;
-}(PrimitiveVal);
-
-var StringVal = function (_UnitVal) {
-    _inherits(StringVal, _UnitVal);
-
-    function StringVal() {
-        _classCallCheck(this, StringVal);
-
-        return _possibleConstructorReturn(this, (StringVal.__proto__ || Object.getPrototypeOf(StringVal)).apply(this, arguments));
-    }
-
-    _createClass(StringVal, [{
-        key: 'getType',
-        value: function getType() {
-            return 'STRING';
-        }
-    }], [{
-        key: 'create',
-        value: function create(value) {
-            return new StringVal().set('value', value);
-        }
-    }]);
-
-    return StringVal;
-}(UnitVal);
-
-var PercentageVal = function (_UnitVal2) {
-    _inherits(PercentageVal, _UnitVal2);
+var PercentageVal = function (_PrimitiveVal3) {
+    _inherits(PercentageVal, _PrimitiveVal3);
 
     function PercentageVal() {
         _classCallCheck(this, PercentageVal);
@@ -1006,6 +873,15 @@ var PercentageVal = function (_UnitVal2) {
         value: function getType() {
             return 'PERCENTAGE';
         }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: _toJSON(this.get('value')),
+                unit: _toJSON(this.get('unit'))
+            };
+        }
     }], [{
         key: 'create',
         value: function create(value) {
@@ -1016,10 +892,10 @@ var PercentageVal = function (_UnitVal2) {
     }]);
 
     return PercentageVal;
-}(UnitVal);
+}(PrimitiveVal);
 
-var DimensionVal = function (_UnitVal3) {
-    _inherits(DimensionVal, _UnitVal3);
+var DimensionVal = function (_PrimitiveVal4) {
+    _inherits(DimensionVal, _PrimitiveVal4);
 
     function DimensionVal() {
         _classCallCheck(this, DimensionVal);
@@ -1032,6 +908,15 @@ var DimensionVal = function (_UnitVal3) {
         value: function getType() {
             return 'DIMENSION';
         }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: _toJSON(this.get('value')),
+                unit: _toJSON(this.get('unit'))
+            };
+        }
     }], [{
         key: 'create',
         value: function create(value) {
@@ -1042,10 +927,10 @@ var DimensionVal = function (_UnitVal3) {
     }]);
 
     return DimensionVal;
-}(UnitVal);
+}(PrimitiveVal);
 
-var IdentVal = function (_PrimitiveVal4) {
-    _inherits(IdentVal, _PrimitiveVal4);
+var IdentVal = function (_CSSObject6) {
+    _inherits(IdentVal, _CSSObject6);
 
     function IdentVal() {
         _classCallCheck(this, IdentVal);
@@ -1059,14 +944,13 @@ var IdentVal = function (_PrimitiveVal4) {
             return 'ID';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return toSimple(this.get('vendorPrefix', '')) + toSimple(this.get('value'));
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                vendorPrefix: _toJSON(this.get('vendorPrefix', '')),
+                value: _toJSON(this.get('value'))
+            };
         }
     }], [{
         key: 'create',
@@ -1078,10 +962,10 @@ var IdentVal = function (_PrimitiveVal4) {
     }]);
 
     return IdentVal;
-}(PrimitiveVal);
+}(CSSObject);
 
-var UrlVal = function (_PrimitiveVal5) {
-    _inherits(UrlVal, _PrimitiveVal5);
+var UrlVal = function (_CSSObject7) {
+    _inherits(UrlVal, _CSSObject7);
 
     function UrlVal() {
         _classCallCheck(this, UrlVal);
@@ -1095,9 +979,13 @@ var UrlVal = function (_PrimitiveVal5) {
             return 'URL';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return toSimple(this.get('name')) + '(' + toSimple(this.get('value')) + ')';
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                name: _toJSON(this.get('name', null)),
+                value: _toJSON(this.get('value', null))
+            };
         }
     }], [{
         key: 'create',
@@ -1114,10 +1002,10 @@ var UrlVal = function (_PrimitiveVal5) {
     }]);
 
     return UrlVal;
-}(PrimitiveVal);
+}(CSSObject);
 
-var FunctionVal = function (_PrimitiveVal6) {
-    _inherits(FunctionVal, _PrimitiveVal6);
+var FunctionVal = function (_CSSObject8) {
+    _inherits(FunctionVal, _CSSObject8);
 
     function FunctionVal() {
         _classCallCheck(this, FunctionVal);
@@ -1131,9 +1019,13 @@ var FunctionVal = function (_PrimitiveVal6) {
             return 'FUNCTION';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return toSimple(this.get('name')) + '(' + toSimple(this.get('parameters')) + ')';
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                name: _toJSON(this.get('name')),
+                parameters: _toJSON(this.get('parameters'))
+            };
         }
     }], [{
         key: 'create',
@@ -1143,15 +1035,18 @@ var FunctionVal = function (_PrimitiveVal6) {
     }]);
 
     return FunctionVal;
-}(PrimitiveVal);
+}(CSSObject);
 
-var SequenceVal = function (_PrimitiveVal7) {
-    _inherits(SequenceVal, _PrimitiveVal7);
+var SequenceVal = function (_CSSObject9) {
+    _inherits(SequenceVal, _CSSObject9);
 
     function SequenceVal() {
         _classCallCheck(this, SequenceVal);
 
-        return _possibleConstructorReturn(this, (SequenceVal.__proto__ || Object.getPrototypeOf(SequenceVal)).apply(this, arguments));
+        var _this13 = _possibleConstructorReturn(this, (SequenceVal.__proto__ || Object.getPrototypeOf(SequenceVal)).call(this));
+
+        _this13.value = new Array();
+        return _this13;
     }
 
     _createClass(SequenceVal, [{
@@ -1160,17 +1055,20 @@ var SequenceVal = function (_PrimitiveVal7) {
             return 'SEQUENCE';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return {
-                type: this.getType(),
-                value: toSimple(this.get('value', []))
-            };
+        key: 'add',
+        value: function add(value) {
+            this.value.push(value);
+            return this;
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return toSimple(this.get('value', [])).join(' ');
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: this.get('value').map(function (o) {
+                    return _toJSON(o);
+                })
+            };
         }
     }], [{
         key: 'create',
@@ -1180,10 +1078,10 @@ var SequenceVal = function (_PrimitiveVal7) {
     }]);
 
     return SequenceVal;
-}(PrimitiveVal);
+}(CSSObject);
 
-var QualifiedRule = function (_CSSObject5) {
-    _inherits(QualifiedRule, _CSSObject5);
+var QualifiedRule = function (_CSSObject10) {
+    _inherits(QualifiedRule, _CSSObject10);
 
     function QualifiedRule() {
         _classCallCheck(this, QualifiedRule);
@@ -1197,11 +1095,12 @@ var QualifiedRule = function (_CSSObject5) {
             return 'QUALIFIED_RULE';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
+        key: 'toJSON',
+        value: function toJSON() {
             return {
-                selectors: toSimple(this.get('selectors')),
-                declarations: toSimple(this.get('value'))
+                type: this.getType(),
+                selectors: _toJSON(this.get('selectors')),
+                value: _toJSON(this.get('value'))
             };
         }
     }], [{
@@ -1214,8 +1113,8 @@ var QualifiedRule = function (_CSSObject5) {
     return QualifiedRule;
 }(CSSObject);
 
-var Declaration = function (_CSSObject6) {
-    _inherits(Declaration, _CSSObject6);
+var Declaration = function (_CSSObject11) {
+    _inherits(Declaration, _CSSObject11);
 
     function Declaration() {
         _classCallCheck(this, Declaration);
@@ -1229,12 +1128,15 @@ var Declaration = function (_CSSObject6) {
             return 'DECLARATION';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var json = {};
-            json[toSimple(this.get('property'))] = toSimple(this.get('value'));
-
-            return json;
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                property: _toJSON(this.get('property')),
+                value: _toJSON(this.get('value')),
+                important: this.get('important', false),
+                ieOnlyHack: _toJSON(this.get('ieOnlyHack', false))
+            };
         }
     }], [{
         key: 'create',
@@ -1246,8 +1148,8 @@ var Declaration = function (_CSSObject6) {
     return Declaration;
 }(CSSObject);
 
-var DeclarationList = function (_CSSObject7) {
-    _inherits(DeclarationList, _CSSObject7);
+var DeclarationList = function (_CSSObject12) {
+    _inherits(DeclarationList, _CSSObject12);
 
     function DeclarationList() {
         _classCallCheck(this, DeclarationList);
@@ -1261,15 +1163,14 @@ var DeclarationList = function (_CSSObject7) {
             return 'DECLARATION_LIST';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var json = {};
-
-            toSimple(this.get('value')).map(function (o) {
-                mixin(json, o);
-            });
-
-            return json;
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: this.get('value').map(function (o) {
+                    return _toJSON(o);
+                })
+            };
         }
     }], [{
         key: 'create',
@@ -1283,8 +1184,8 @@ var DeclarationList = function (_CSSObject7) {
     return DeclarationList;
 }(CSSObject);
 
-var MediaQueryList = function (_CSSObject8) {
-    _inherits(MediaQueryList, _CSSObject8);
+var MediaQueryList = function (_CSSObject13) {
+    _inherits(MediaQueryList, _CSSObject13);
 
     function MediaQueryList() {
         _classCallCheck(this, MediaQueryList);
@@ -1298,14 +1199,27 @@ var MediaQueryList = function (_CSSObject8) {
             return 'MEDIA_QUERY_LIST';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
+        key: 'add',
+        value: function add(mediaQuery) {
+            if (!this.value) {
+                this.value = [];
+            }
+
+            if (mediaQuery) {
+                this.value.push(mediaQuery);
+            }
+
+            return this;
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return toSimple(this.get('value'));
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: this.get('value').map(function (o) {
+                    return _toJSON(o);
+                })
+            };
         }
     }], [{
         key: 'create',
@@ -1317,8 +1231,8 @@ var MediaQueryList = function (_CSSObject8) {
     return MediaQueryList;
 }(CSSObject);
 
-var MediaQuery = function (_CSSObject9) {
-    _inherits(MediaQuery, _CSSObject9);
+var MediaQuery = function (_CSSObject14) {
+    _inherits(MediaQuery, _CSSObject14);
 
     function MediaQuery() {
         _classCallCheck(this, MediaQuery);
@@ -1332,25 +1246,14 @@ var MediaQuery = function (_CSSObject9) {
             return 'MEDIA_QUERY';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var json = toSimple(this.get('mediaType'));
-
-            var prefix = this.get('prefix');
-            if (prefix) {
-                json = toSimple(prefix) + ' ' + json;
-            }
-            var nextExpression = this.get('nextExpression');
-            if (nextExpression) {
-                json += ' ' + toSimple(nextExpression);
-            }
-
-            return json;
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                mediaType: _toJSON(this.get('mediaType', null)),
+                prefix: _toJSON(this.get('prefix', null)),
+                nextExpression: _toJSON(this.get('nextExpression', null))
+            };
         }
     }], [{
         key: 'create',
@@ -1362,8 +1265,8 @@ var MediaQuery = function (_CSSObject9) {
     return MediaQuery;
 }(CSSObject);
 
-var MediaQueryExpression = function (_CSSObject10) {
-    _inherits(MediaQueryExpression, _CSSObject10);
+var MediaQueryExpression = function (_CSSObject15) {
+    _inherits(MediaQueryExpression, _CSSObject15);
 
     function MediaQueryExpression() {
         _classCallCheck(this, MediaQueryExpression);
@@ -1377,28 +1280,14 @@ var MediaQueryExpression = function (_CSSObject10) {
             return 'MEDIA_QUERY_EXPRESSION';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var expression = '(' + toSimple(this.get('mediaFeature'));
-
-            var value = toSimple(this.get('value'));
-            if (value) {
-                expression += ': ' + value;
-            }
-
-            expression += ')';
-
-            var nextExpression = this.get('nextExpression');
-            if (nextExpression) {
-                expression += ' ' + toSimple(nextExpression);
-            }
-
-            return expression;
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                feature: _toJSON(this.get('mediaFeature', null)),
+                value: _toJSON(this.get('value', null)),
+                nextExpression: _toJSON(this.get('nextExpression', null))
+            };
         }
     }], [{
         key: 'create',
@@ -1410,44 +1299,8 @@ var MediaQueryExpression = function (_CSSObject10) {
     return MediaQueryExpression;
 }(CSSObject);
 
-var SelectorList = function (_CSSObject11) {
-    _inherits(SelectorList, _CSSObject11);
-
-    function SelectorList() {
-        _classCallCheck(this, SelectorList);
-
-        return _possibleConstructorReturn(this, (SelectorList.__proto__ || Object.getPrototypeOf(SelectorList)).apply(this, arguments));
-    }
-
-    _createClass(SelectorList, [{
-        key: 'getType',
-        value: function getType() {
-            return 'SELECTOR_LIST';
-        }
-    }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return this.get('value').map(function (o) {
-                return toSimple(o);
-            });
-        }
-    }], [{
-        key: 'create',
-        value: function create(value) {
-            return new SelectorList();
-        }
-    }]);
-
-    return SelectorList;
-}(CSSObject);
-
-var Selector = function (_CSSObject12) {
-    _inherits(Selector, _CSSObject12);
+var Selector = function (_CSSObject16) {
+    _inherits(Selector, _CSSObject16);
 
     function Selector() {
         _classCallCheck(this, Selector);
@@ -1461,28 +1314,98 @@ var Selector = function (_CSSObject12) {
             return 'SELECTOR';
         }
     }, {
-        key: 'toDeepJSON',
-        value: function toDeepJSON() {
-            return this.toSimpleJSON();
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var selector = toSimple(this.get('value'));
-            var nextSelector = toSimple(this.get('nextSelector'));
-            if (nextSelector) {
-                selector += nextSelector;
-            }
-
-            return selector;
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: _toJSON(this.get('value')),
+                nextSelector: _toJSON(this.get('nextSelector'))
+            };
         }
     }]);
 
     return Selector;
 }(CSSObject);
 
-var SelectorCombinator = function (_Selector) {
-    _inherits(SelectorCombinator, _Selector);
+var SelectorList = function (_Selector) {
+    _inherits(SelectorList, _Selector);
+
+    function SelectorList() {
+        _classCallCheck(this, SelectorList);
+
+        return _possibleConstructorReturn(this, (SelectorList.__proto__ || Object.getPrototypeOf(SelectorList)).apply(this, arguments));
+    }
+
+    _createClass(SelectorList, [{
+        key: 'getType',
+        value: function getType() {
+            return 'SELECTOR_LIST';
+        }
+    }, {
+        key: 'add',
+        value: function add(rootSelector) {
+            if (!this.value) {
+                this.value = [];
+            }
+
+            this.value.push(rootSelector);
+
+            return this;
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: this.get('value').map(function (o) {
+                    return _toJSON(o);
+                })
+            };
+        }
+    }], [{
+        key: 'create',
+        value: function create(value) {
+            return new SelectorList();
+        }
+    }]);
+
+    return SelectorList;
+}(Selector);
+
+var RootSelector = function (_Selector2) {
+    _inherits(RootSelector, _Selector2);
+
+    function RootSelector() {
+        _classCallCheck(this, RootSelector);
+
+        return _possibleConstructorReturn(this, (RootSelector.__proto__ || Object.getPrototypeOf(RootSelector)).apply(this, arguments));
+    }
+
+    _createClass(RootSelector, [{
+        key: 'getType',
+        value: function getType() {
+            return 'SELECTOR_ROOT';
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: _toJSON(this.get('value'))
+            };
+        }
+    }], [{
+        key: 'create',
+        value: function create(value) {
+            return new RootSelector().set('value', value);
+        }
+    }]);
+
+    return RootSelector;
+}(Selector);
+
+var SelectorCombinator = function (_Selector3) {
+    _inherits(SelectorCombinator, _Selector3);
 
     function SelectorCombinator() {
         _classCallCheck(this, SelectorCombinator);
@@ -1501,15 +1424,14 @@ var SelectorCombinator = function (_Selector) {
             return 'UNKNOWN';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            // for beautify
-            var selector = ' ' + toSimple(this.get('value')) + ' ';
-            var nextSelector = toSimple(this.get('nextSelector'));
-            if (nextSelector) {
-                selector += nextSelector;
-            }
-            return selector;
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                relation: this.getRelation(),
+                value: _toJSON(this.get('value')),
+                nextSelector: _toJSON(this.get('nextSelector'))
+            };
         }
     }], [{
         key: 'create',
@@ -1534,17 +1456,6 @@ var DescendantSelectorCombinator = function (_SelectorCombinator) {
         key: 'getRelation',
         value: function getRelation() {
             return 'DESCEDANT';
-        }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            // for beautify
-            var selector = toSimple(this.get('value'));
-            var nextSelector = toSimple(this.get('nextSelector'));
-            if (nextSelector) {
-                selector += nextSelector;
-            }
-            return selector;
         }
     }], [{
         key: 'create',
@@ -1628,8 +1539,8 @@ var SiblingSelectorCombinator = function (_SelectorCombinator4) {
     return SiblingSelectorCombinator;
 }(SelectorCombinator);
 
-var ClassSelector = function (_Selector2) {
-    _inherits(ClassSelector, _Selector2);
+var ClassSelector = function (_Selector4) {
+    _inherits(ClassSelector, _Selector4);
 
     function ClassSelector() {
         _classCallCheck(this, ClassSelector);
@@ -1652,8 +1563,8 @@ var ClassSelector = function (_Selector2) {
     return ClassSelector;
 }(Selector);
 
-var TypeSelector = function (_Selector3) {
-    _inherits(TypeSelector, _Selector3);
+var TypeSelector = function (_Selector5) {
+    _inherits(TypeSelector, _Selector5);
 
     function TypeSelector() {
         _classCallCheck(this, TypeSelector);
@@ -1676,8 +1587,8 @@ var TypeSelector = function (_Selector3) {
     return TypeSelector;
 }(Selector);
 
-var IdSelector = function (_Selector4) {
-    _inherits(IdSelector, _Selector4);
+var IdSelector = function (_Selector6) {
+    _inherits(IdSelector, _Selector6);
 
     function IdSelector() {
         _classCallCheck(this, IdSelector);
@@ -1700,8 +1611,8 @@ var IdSelector = function (_Selector4) {
     return IdSelector;
 }(Selector);
 
-var UniversalSelector = function (_Selector5) {
-    _inherits(UniversalSelector, _Selector5);
+var UniversalSelector = function (_Selector7) {
+    _inherits(UniversalSelector, _Selector7);
 
     function UniversalSelector() {
         _classCallCheck(this, UniversalSelector);
@@ -1724,8 +1635,8 @@ var UniversalSelector = function (_Selector5) {
     return UniversalSelector;
 }(Selector);
 
-var PseudoClassSelector = function (_Selector6) {
-    _inherits(PseudoClassSelector, _Selector6);
+var PseudoClassSelector = function (_Selector8) {
+    _inherits(PseudoClassSelector, _Selector8);
 
     function PseudoClassSelector() {
         _classCallCheck(this, PseudoClassSelector);
@@ -1738,16 +1649,6 @@ var PseudoClassSelector = function (_Selector6) {
         value: function getType() {
             return 'PSEUDO_CLASS_SELECTOR';
         }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var selector = ':' + toSimple(this.get('value'));
-            var nextSelector = toSimple(this.get('nextSelector'));
-            if (nextSelector) {
-                selector += nextSelector;
-            }
-            return selector;
-        }
     }], [{
         key: 'create',
         value: function create(value) {
@@ -1758,8 +1659,8 @@ var PseudoClassSelector = function (_Selector6) {
     return PseudoClassSelector;
 }(Selector);
 
-var PseudoElementSelector = function (_Selector7) {
-    _inherits(PseudoElementSelector, _Selector7);
+var PseudoElementSelector = function (_Selector9) {
+    _inherits(PseudoElementSelector, _Selector9);
 
     function PseudoElementSelector() {
         _classCallCheck(this, PseudoElementSelector);
@@ -1772,16 +1673,6 @@ var PseudoElementSelector = function (_Selector7) {
         value: function getType() {
             return 'PSEUDO_ELEMENT_SELECTOR';
         }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var selector = '::' + toSimple(this.get('value'));
-            var nextSelector = toSimple(this.get('nextSelector'));
-            if (nextSelector) {
-                selector += nextSelector;
-            }
-            return selector;
-        }
     }], [{
         key: 'create',
         value: function create(value) {
@@ -1792,8 +1683,8 @@ var PseudoElementSelector = function (_Selector7) {
     return PseudoElementSelector;
 }(Selector);
 
-var AttributeSelector = function (_Selector8) {
-    _inherits(AttributeSelector, _Selector8);
+var AttributeSelector = function (_Selector10) {
+    _inherits(AttributeSelector, _Selector10);
 
     function AttributeSelector() {
         _classCallCheck(this, AttributeSelector);
@@ -1806,16 +1697,6 @@ var AttributeSelector = function (_Selector8) {
         value: function getType() {
             return 'ATTRIBUTE_SELECTOR';
         }
-    }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var selector = '[' + toSimple(this.get('value')) + ']';
-            var nextSelector = toSimple(this.get('nextSelector'));
-            if (nextSelector) {
-                selector += nextSelector;
-            }
-            return selector;
-        }
     }], [{
         key: 'create',
         value: function create(value) {
@@ -1826,8 +1707,8 @@ var AttributeSelector = function (_Selector8) {
     return AttributeSelector;
 }(Selector);
 
-var AtRule = function (_CSSObject13) {
-    _inherits(AtRule, _CSSObject13);
+var AtRule = function (_CSSObject17) {
+    _inherits(AtRule, _CSSObject17);
 
     function AtRule() {
         _classCallCheck(this, AtRule);
@@ -1841,11 +1722,12 @@ var AtRule = function (_CSSObject13) {
             return 'AT_RULE';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
+        key: 'toJSON',
+        value: function toJSON() {
             return {
-                type: '@' + toSimple(this.get('rule')),
-                value: toSimple(this.get('value'))
+                type: this.getType(),
+                rule: _toJSON(this.get('rule', null)),
+                value: _toJSON(this.get('value', null))
             };
         }
     }, {
@@ -1855,9 +1737,7 @@ var AtRule = function (_CSSObject13) {
             var result = rule.match(regexp);
 
             if (result) {
-                var identVal = IdentVal.create(result[1]);
-                identVal.set('prefix', '@');
-                this.set('rule', identVal);
+                this.set('rule', IdentVal.create(result[1]));
             }
 
             return this;
@@ -1896,11 +1776,12 @@ var AtImport = function (_AtRule2) {
     }
 
     _createClass(AtImport, [{
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return mixin(_get(AtImport.prototype.__proto__ || Object.getPrototypeOf(AtImport.prototype), 'toSimpleJSON', this).call(this), {
-                mediaQuery: toSimple(this.get('nextExpression'))
-            });
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtImport.prototype.__proto__ || Object.getPrototypeOf(AtImport.prototype), 'toJSON', this).call(this);
+            json.nextExpression = _toJSON(this.get('nextExpression', null));
+
+            return json;
         }
     }], [{
         key: 'create',
@@ -1922,11 +1803,12 @@ var AtNamespace = function (_AtRule3) {
     }
 
     _createClass(AtNamespace, [{
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return mixin(_get(AtNamespace.prototype.__proto__ || Object.getPrototypeOf(AtNamespace.prototype), 'toSimpleJSON', this).call(this), {
-                prefix: toSimple(this.get('prefix'))
-            });
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtNamespace.prototype.__proto__ || Object.getPrototypeOf(AtNamespace.prototype), 'toJSON', this).call(this);
+            json.prefix = _toJSON(this.get('prefix', null));
+
+            return json;
         }
     }], [{
         key: 'create',
@@ -1967,11 +1849,12 @@ var AtNestedRule = function (_AtRule5) {
     }
 
     _createClass(AtNestedRule, [{
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return mixin(_get(AtNestedRule.prototype.__proto__ || Object.getPrototypeOf(AtNestedRule.prototype), 'toSimpleJSON', this).call(this), {
-                nestedRules: toSimple(this.get('nestedRules'))
-            });
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtNestedRule.prototype.__proto__ || Object.getPrototypeOf(AtNestedRule.prototype), 'toJSON', this).call(this);
+            json.nestedRules = _toJSON(this.get('nestedRules', null));
+
+            return json;
         }
     }]);
 
@@ -2007,12 +1890,13 @@ var AtKeyframes = function (_AtRule6) {
     }
 
     _createClass(AtKeyframes, [{
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            return {
-                type: '@' + toSimple(this.get('rule')),
-                keyframes: toSimple(this.get('value'))
-            };
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtKeyframes.prototype.__proto__ || Object.getPrototypeOf(AtKeyframes.prototype), 'toJSON', this).call(this);
+
+            json.name = _toJSON(this.get('name'));
+
+            return json;
         }
     }], [{
         key: 'create',
@@ -2024,8 +1908,8 @@ var AtKeyframes = function (_AtRule6) {
     return AtKeyframes;
 }(AtRule);
 
-var AtKeyframesBlockList = function (_CSSObject14) {
-    _inherits(AtKeyframesBlockList, _CSSObject14);
+var AtKeyframesBlockList = function (_CSSObject18) {
+    _inherits(AtKeyframesBlockList, _CSSObject18);
 
     function AtKeyframesBlockList() {
         _classCallCheck(this, AtKeyframesBlockList);
@@ -2039,14 +1923,25 @@ var AtKeyframesBlockList = function (_CSSObject14) {
             return 'KEYFRAME_BLOCK_LIST';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var json = {};
-            toSimple(this.get('value')).map(function (o) {
-                mixin(json, o);
-            });
+        key: 'add',
+        value: function add(block) {
+            if (!this.value) {
+                this.value = [];
+            }
 
-            return json;
+            this.value.push(block);
+
+            return this;
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                type: this.getType(),
+                value: this.get('value', []).map(function (o) {
+                    return _toJSON(o);
+                })
+            };
         }
     }], [{
         key: 'create',
@@ -2058,8 +1953,8 @@ var AtKeyframesBlockList = function (_CSSObject14) {
     return AtKeyframesBlockList;
 }(CSSObject);
 
-var AtKeyframesBlock = function (_CSSObject15) {
-    _inherits(AtKeyframesBlock, _CSSObject15);
+var AtKeyframesBlock = function (_CSSObject19) {
+    _inherits(AtKeyframesBlock, _CSSObject19);
 
     function AtKeyframesBlock() {
         _classCallCheck(this, AtKeyframesBlock);
@@ -2073,10 +1968,10 @@ var AtKeyframesBlock = function (_CSSObject15) {
             return 'KEYFRAME_BLOCK';
         }
     }, {
-        key: 'toSimpleJSON',
-        value: function toSimpleJSON() {
-            var json = {};
-            json[toSimple(this.get('selector'))] = toSimple(this.get('value'));
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtKeyframesBlock.prototype.__proto__ || Object.getPrototypeOf(AtKeyframesBlock.prototype), 'toJSON', this).call(this);
+            json.selector = _toJSON(this.get('selector', null));
 
             return json;
         }
@@ -2099,7 +1994,16 @@ var AtSupport = function (_AtNestedRule2) {
         return _possibleConstructorReturn(this, (AtSupport.__proto__ || Object.getPrototypeOf(AtSupport)).apply(this, arguments));
     }
 
-    _createClass(AtSupport, null, [{
+    _createClass(AtSupport, [{
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtSupport.prototype.__proto__ || Object.getPrototypeOf(AtSupport.prototype), 'toJSON', this).call(this);
+            json.property = _toJSON(this.get('property', null));
+            json.operator = _toJSON(this.get('operator', null));
+
+            return json;
+        }
+    }], [{
         key: 'create',
         value: function create(rule) {
             return new AtSupport().setRule(rule);
@@ -2109,8 +2013,8 @@ var AtSupport = function (_AtNestedRule2) {
     return AtSupport;
 }(AtNestedRule);
 
-var AtSupportExpression = function (_CSSObject16) {
-    _inherits(AtSupportExpression, _CSSObject16);
+var AtSupportExpression = function (_CSSObject20) {
+    _inherits(AtSupportExpression, _CSSObject20);
 
     function AtSupportExpression() {
         _classCallCheck(this, AtSupportExpression);
@@ -2122,6 +2026,16 @@ var AtSupportExpression = function (_CSSObject16) {
         key: 'getType',
         value: function getType(type) {
             return 'SUPPORT_EXPRESSION';
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            var json = _get(AtSupportExpression.prototype.__proto__ || Object.getPrototypeOf(AtSupportExpression.prototype), 'toJSON', this).call(this);
+            json.property = _toJSON(this.get('property', null));
+            json.operator = _toJSON(this.get('operator', null));
+            json.nextExpression = _toJSON(this.get('nextExpression', null));
+
+            return json;
         }
     }], [{
         key: 'create',
