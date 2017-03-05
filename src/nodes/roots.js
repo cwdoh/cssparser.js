@@ -1,26 +1,80 @@
 class CSSObject {
+    constructor() {
+        this.hash = Math.random()
+        this._props_ = {}
+    }
+
     getType(type) {
         return 'OBJECT'
     }
 
     set(key, value) {
         if (value || value !== undefined) {
-            this[key] = value
+            this._props_[key] = value
         }
         return this
     }
 
     get(key, defaultValue) {
-        if (key in this) {
-            return this[key]
+        if (key in this._props_) {
+            return this._props_[key]
         }
         return defaultValue
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: toJSON(this.get('value'))
+    add(component, prop) {
+        prop = prop || 'value'
+
+        if (component) {
+            var source = this.get(prop, [])
+            source.push(component)
+            this.set(prop, source)
+        }
+
+        return this
+    }
+
+    toAtomicJSON() {
+        var json = {
+            type: this.getType()
+        }
+
+        var self = this
+        Object.keys(this._props_).map((key) => {
+            json[key] = toAtomic(this.get(key, null))
+        })
+
+        return json
+    }
+
+    toDeepJSON() {
+        var json = {
+            type: this.getType()
+        }
+
+        var self = this
+        Object.keys(this._props_).map((key) => {
+            json[key] = toDeep(this.get(key, null))
+        })
+
+        return json
+    }
+
+    toSimpleJSON() {
+        var self = this
+        return Object.keys(this._props_).map(
+            (key) => toSimple(this.get(key, null))
+        )
+    }
+
+    toJSON(level) {
+        switch(level) {
+            case 'atomic':
+                return toAtomic(this)
+            case 'deep':
+                return toDeep(this)
+            case 'simple':
+                return toSimple(this)
         }
     }
 
@@ -30,30 +84,16 @@ class CSSObject {
 }
 
 class StyleSheet extends CSSObject {
+    constructor() {
+        super()
+    }
+
+    toSimpleJSON() {
+        return toSimple(this.get('value'))
+    }
+
     getType(type) {
         return 'STYLESHEET'
-    }
-
-    add(component) {
-        if (!this.value) {
-            this.value = []
-        }
-
-        if (component) {
-            this.value.push(component)
-        }
-
-        return this
-    }
-
-    toJSON() {
-        var json = []
-        var components = this.get('value', [])
-
-        return {
-            type: this.getType(),
-            value: components.map((o) => toJSON(o))
-        }
     }
 
     static create() {
@@ -66,9 +106,12 @@ class Operator extends CSSObject {
         return 'OPERATOR'
     }
 
-    toJSON() {
-        var json = super.toJSON()
-        json.nextExpression = toJSON(this.get('nextExpression', null))
+    toSimpleJSON() {
+        var json = toSimple(this.get('value'))
+        var nextExpression = this.get('nextExpression')
+        if (nextExpression) {
+            json += ' '  + toSimple(nextExpression)
+        }
 
         return json
     }
@@ -83,13 +126,12 @@ class Expression extends CSSObject {
         return 'EXPRESSION'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            operator: this.get('operator'),
-            lhs: toJSON(this.get('lhs')),
-            rhs: toJSON(this.get('rhs'))
-        }
+    toSimpleJSON() {
+        return
+            toSimple(this.get('lhs'))
+            // for beautify
+            + ' ' + toSimple(this.get('operator')) + ' '
+            + toSimple(this.get('rhs'))
     }
 
     static create(operator, lhs, rhs) {

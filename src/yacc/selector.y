@@ -7,8 +7,8 @@
 
 
 SelectorList
-  : SelectorGroup                        -> SelectorList.create().add(RootSelector.create($1))
-  | SelectorList COMMA SelectorGroup     -> $1.add(RootSelector.create($3))
+  : SelectorGroup                        -> SelectorList.create().add($1)
+  | SelectorList COMMA SelectorGroup     -> $1.add($3)
   ;
 SelectorGroup
   : Selector

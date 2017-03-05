@@ -8,11 +8,79 @@ const concat = function(l, r) {
     return l.concat(r)
 }
 
-const toJSON = (o) => {
+const stripFalsy = (o) => {
+    for (var k in o) {
+        if (!o[k]) {
+            delete o[k]
+        }
+    }
+
+    return o
+}
+
+const mixin = (target, source) => {
+    for (var prop in source) {
+        if (prop in target) {
+            target[prop] = concat(target[prop], source[prop])
+        } else {
+            target[prop] = source[prop]
+        }
+    }
+
+    return target
+}
+
+const isArray = (o) => Object.prototype.toString.call(o) === '[object Array]'
+
+const toAtomic = (o) => {
+    if (o instanceof CSSObject) {
+        return o.toAtomicJSON()
+    }
+    else if (isArray(o)) {
+        return o.map((item) => toAtomic(item))
+    }
+
+    return o
+}
+
+const toDeep = (o) => {
+    if (o instanceof CSSObject) {
+        return o.toDeepJSON()
+    }
+    else if (isArray(o)) {
+        return o.map((item) => toDeep(item))
+    }
+
+    return o
+}
+
+const toSimple = (o) => {
+    if (o instanceof CSSObject) {
+        return o.toSimpleJSON()
+    }
+    else if (isArray(o)) {
+        return o.map((item) => toSimple(item))
+    }
+
+    return o
+}
+
+const toJSON = (o, level) => {
+    level = level.toLowerCase()
+
     if (!o) {
         return o
     }
 
-    return (o.hasOwnProperty('toJSON'))? o.toJSON() : o
+    switch(level) {
+        case 'atomic':
+            return toAtomic(o)
+        case 'deep':
+            return toDeep(o)
+        case 'simple':
+            return toSimple(o)
+    }
+
+    return o;
 }
 

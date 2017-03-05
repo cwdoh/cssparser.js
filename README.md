@@ -66,16 +66,12 @@ You can generate javascript object from your javascript module.
 
 ###Getting jison & source
 
-	$ npm install jison -g
 	$ git clone https://github.com/cwdoh/cssparser.js.git
+	$ npm install
 
-###Generating from source
+###Generating parser from source
 
-	$ grunt
-	
-	or
-	
-	$ jison ./src/cssparser.y ./src/css.l
+	$ npm run build
 
 
 ##JSON Structure
@@ -89,62 +85,6 @@ There are 3 types of JSON format.
 * atomic - most detailed. 'atomic' JSON has all pieces of each key & values in CSS.
 	* e.g. length has numeric value & its unit like "100px" -> { "value": 100, "unit": "px" }
 
-###Type 'simple'
-
-
-	stylesheet_object =
-	
-		+ charset [Object]
-
-		+ imports [Array]
-			+ [Object(Import)]
-				+ type : "import" : [DOMString]// URI or string
-				+ mediaquries [DOMString] : // if query exist
-
-		+ namespaces [Array]
-			+ namespace [DOMString] : // URI or string 
-			+ prefix [DOMString] : // if prefix exist
-
-		+ rulelist [Array]
-			+ [Object(Media)]
-				+ type [DOMString] : "media"
-				+ mediaqueries [DOMString] : // query string
-				+ children [Array] : // nested rulelist
-					+ rulelist // …
-
-			+ [Object(FontFace)]
-				+ type [DOMString] : "fontface"
-				+ declarations [Object] : // declarations
-
-			+ [Object(Page)]
-				+ type [DOMString] : "page"
-				+ id [DOMString] : // identifier
-				+ pseudo [DOMString] : // pseudo string
-				+ declarations [Object] : // declarations
-
-			+ [Object(Style)]
-				+ type [DOMString] : "style"
-				+ selector [DOMString] : // selector string
-				+ declarations [Object] : // declarations
-
-			+ [Object(Keyframes)]
-				+ type [DOMString] : "keyframes"
-				+ id [DOMString] : // identifier
-				+ prefix [DOMString] : // vendor prefix e.g. -moz-, -webkit-, -o-, …
-				+ keyframes [Array]
-					+ [Object(keyframe)]
-						+ type [DOMString] : "keyframe"
-						+ offset [DOMString] : // offset string
-						+ declarations [Object] : // declarations
-
-###Type 'deep'
-
-Not yet.
-
-###Type 'atomic'
-
-Not yet.
-
 ##Example
 
 Example is tested with rulesets of [http://css3please.com](http://css3please.com)
@@ -153,165 +93,310 @@ Example is tested with rulesets of [http://css3please.com](http://css3please.com
 
 ###Input
 
-	@charset 'utf-8';
-	
-	@import 'custom.css';
-	@import url("fineprint.css");
-	@import url("fineprint.css") print;
-	@import url("bluish.css") projection, tv;
-	@import "common.css" screen, projection;
-	@import url('landscape.css') screen and (orientation:landscape);
-	
-	@namespace "http://www.w3c.org";
-	@namespace svg "http://www.w3c.org/svg";
-	
-	@media screen {
-		* {
-		   position: absolute;
-		 }
-	
-		.box_shadow {
-		  -webkit-box-shadow: 0px 0px 4px 0px #ffffff; /* Android 2.3+, iOS 4.0.2-4.2, Safari 3-4 */
-				  box-shadow: 0px 0px 4px 0px #ffffff; /* Chrome 6+, Firefox 4+, IE 9+, iOS 5+, Opera 10.50+ */
-		}
-	}
-	
-	@-webkit-keyframes myanim {
-	  0%   { opacity: 0.0; }
-	  50%  { opacity: 0.5; }
-	  100% { opacity: 1.0; }
-	}
-	
-	.matrix {
-	  
-	-webkit-transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
-	-moz-transform: matrix(1.186,-0.069,0.102,1.036,16.595px,73.291px);
-	-ms-transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
-	-o-transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
-	transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
-	
-	}
-	
-	@font-face {
-	  font-family: 'WebFont';
-	  src: url('myfont.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-	       url('myfont.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
-	}
+```css
+@charset 'utf-8';
+@import url("fineprint.css") print;
+@media screen {
+	* {
+	   position: absolute;
+	 }
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 1rem;
+}
+```
 
 ###JSON Output
 
-	{
-		"charset": "'utf-8'",
-		"imports": [
-			{
-				"import": "'custom.css'"
-			},
-			{
-				"import": "url(\"fineprint.css\")"
-			},
-			{
-				"import": "url(\"fineprint.css\")",
-				"mediaqueries": "print"
-			},
-			{
-				"import": "url(\"bluish.css\")",
-				"mediaqueries": "projection, tv"
-			},
-			{
-				"import": "\"common.css\"",
-				"mediaqueries": "screen, projection"
-			},
-			{
-				"import": "url('landscape.css')",
-				"mediaqueries": "screen and (orientation:landscape)"
-			}
-		],
-		"namespaces": [
-			{
-				"namespace": "\"http://www.w3c.org\""
-			},
-			{
-				"namespace": "\"http://www.w3c.org/svg\"",
-				"prefix": "svg"
-			}
-		],
-		"rulelist": [
-			{
-				"type": "media",
-				"mediaqueries": "screen",
-				"children": [
-					{
-						"type": "style",
-						"selector": "*",
-						"declarations": {
-							"position": "absolute"
-						}
-					},
-					{
-						"type": "style",
-						"selector": ".box_shadow",
-						"declarations": {
-							"-webkit-box-shadow": "0px 0px 4px 0px #ffffff",
-							"box-shadow": "0px 0px 4px 0px #ffffff"
-						}
-					}
-				]
-			},
-			{
-				"type": "keyframes",
-				"id": "myanim",
-				"keyframes": [
-					{
-						"offset": "0%",
-						"declarations": {
-							"opacity": "0.0"
-						}
-					},
-					{
-						"offset": "50%",
-						"declarations": {
-							"opacity": "0.5"
-						}
-					},
-					{
-						"offset": "100%",
-						"declarations": {
-							"opacity": "1.0"
-						}
-					}
-				],
-				"prefix": "-webkit-"
-			},
-			{
-				"type": "style",
-				"selector": ".matrix",
-				"declarations": {
-					"-webkit-transform": "matrix(1.186,-0.069,0.102,1.036,16.595,73.291)",
-					"-moz-transform": "matrix(1.186,-0.069,0.102,1.036,16.595px,73.291px)",
-					"-ms-transform": "matrix(1.186,-0.069,0.102,1.036,16.595,73.291)",
-					"-o-transform": "matrix(1.186,-0.069,0.102,1.036,16.595,73.291)",
-					"transform": "matrix(1.186,-0.069,0.102,1.036,16.595,73.291)"
-				}
-			},
-			{
-				"type": "fontface",
-				"declarations": {
-					"font-family": "'WebFont'",
-					"src": "url('myfont.woff') format('woff'),url('myfont.ttf') format('truetype')"
-				}
-			}
-		]
-	}
+####Type 'simple'
+
+```javascript
+
+> cssparser@0.2.2 test-simple /Volumes/Working/private/cssparser.js
+> node lib/cli.js test/test.css -c -t simple
+
+[
+    {
+        "type": "@charset",
+        "value": "'utf-8'"
+    },
+    {
+        "type": "@import",
+        "value": "url(\"fineprint.css\")",
+        "mediaQuery": [
+            "print"
+        ]
+    },
+    {
+        "type": "@media",
+        "value": [
+            "screen"
+        ],
+        "nestedRules": [
+            {
+                "selectors": [
+                    "*"
+                ],
+                "declarations": {
+                    "position": "absolute"
+                }
+            }
+        ]
+    },
+    {
+        "selectors": [
+            ".footer"
+        ],
+        "declarations": {
+            "position": "fixed",
+            "bottom": 0,
+            "width": "1rem"
+        }
+    }
+]
+```
+
+####Type 'deep'
+
+```javascript
+{
+    "type": "STYLESHEET",
+    "value": [
+        {
+            "type": "AT_RULE",
+            "rule": "charset",
+            "value": "'utf-8'"
+        },
+        {
+            "type": "AT_RULE",
+            "rule": "import",
+            "value": "url(\"fineprint.css\")",
+            "nextExpression": [
+                "print"
+            ]
+        },
+        {
+            "type": "AT_RULE",
+            "rule": "media",
+            "value": [
+                "screen"
+            ],
+            "nestedRules": [
+                {
+                    "type": "QUALIFIED_RULE",
+                    "value": {
+                        "type": "DECLARATION_LIST",
+                        "value": [
+                            {
+                                "type": "DECLARATION",
+                                "property": "position",
+                                "value": "absolute"
+                            }
+                        ]
+                    },
+                    "selectors": [
+                        "*"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "QUALIFIED_RULE",
+            "value": {
+                "type": "DECLARATION_LIST",
+                "value": [
+                    {
+                        "type": "DECLARATION",
+                        "property": "position",
+                        "value": "fixed"
+                    },
+                    {
+                        "type": "DECLARATION",
+                        "property": "bottom",
+                        "value": 0
+                    },
+                    {
+                        "type": "DECLARATION",
+                        "property": "width",
+                        "value": "1rem"
+                    }
+                ]
+            },
+            "selectors": [
+                ".footer"
+            ]
+        }
+    ]
+}
+```
+
+####Type 'atomic'
+
+```javascript
+{
+    "type": "STYLESHEET",
+    "value": [
+        {
+            "type": "AT_RULE",
+            "rule": {
+                "type": "ID",
+                "value": "charset",
+                "prefix": "@"
+            },
+            "value": {
+                "type": "STRING",
+                "value": "'utf-8'"
+            }
+        },
+        {
+            "type": "AT_RULE",
+            "rule": {
+                "type": "ID",
+                "value": "import",
+                "prefix": "@"
+            },
+            "value": {
+                "type": "URL",
+                "name": {
+                    "type": "ID",
+                    "value": "url"
+                },
+                "value": "\"fineprint.css\""
+            },
+            "nextExpression": {
+                "type": "MEDIA_QUERY_LIST",
+                "value": [
+                    {
+                        "type": "MEDIA_QUERY",
+                        "mediaType": {
+                            "type": "ID",
+                            "value": "print"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "AT_RULE",
+            "rule": {
+                "type": "ID",
+                "value": "media",
+                "prefix": "@"
+            },
+            "value": {
+                "type": "MEDIA_QUERY_LIST",
+                "value": [
+                    {
+                        "type": "MEDIA_QUERY",
+                        "mediaType": {
+                            "type": "ID",
+                            "value": "screen"
+                        }
+                    }
+                ]
+            },
+            "nestedRules": [
+                {
+                    "type": "QUALIFIED_RULE",
+                    "value": {
+                        "type": "DECLARATION_LIST",
+                        "value": [
+                            {
+                                "type": "DECLARATION",
+                                "property": {
+                                    "type": "ID",
+                                    "value": "position"
+                                },
+                                "value": {
+                                    "type": "ID",
+                                    "value": "absolute"
+                                }
+                            }
+                        ]
+                    },
+                    "selectors": {
+                        "type": "SELECTOR_LIST",
+                        "value": [
+                            {
+                                "type": "UNIVERSAL_SELECTOR",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "QUALIFIED_RULE",
+            "value": {
+                "type": "DECLARATION_LIST",
+                "value": [
+                    {
+                        "type": "DECLARATION",
+                        "property": {
+                            "type": "ID",
+                            "value": "position"
+                        },
+                        "value": {
+                            "type": "ID",
+                            "value": "fixed"
+                        }
+                    },
+                    {
+                        "type": "DECLARATION",
+                        "property": {
+                            "type": "ID",
+                            "value": "bottom"
+                        },
+                        "value": {
+                            "type": "NUMBER",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "type": "DECLARATION",
+                        "property": {
+                            "type": "ID",
+                            "value": "width"
+                        },
+                        "value": {
+                            "type": "DIMENSION",
+                            "value": 1,
+                            "unit": "rem"
+                        }
+                    }
+                ]
+            },
+            "selectors": {
+                "type": "SELECTOR_LIST",
+                "value": [
+                    {
+                        "type": "CLASS_SELECTOR",
+                        "value": ".footer"
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
 
 ##Change log
 
-* 0.2.0 - May 20th, 2013
-	* Initial release of cssparser.js.
-* 0.2.1 - May 21st, 2013
-	* Update grunt, dependencies, cli options & output message
-	* Add 'keyframe' type at child node of keyframes
+* 0.9.0-alpha - March 5th, 2016
+	* Fully rewrited parser.
+	* Supports three modes such as simple, deep, atomic.
+		* Also, simple mode produced different results instead of the format of previous version.
 * 0.2.2 - July 27th, 2013
 	* Add ratio type expression with '/'. thanks to Mohsen Heydari.
+* 0.2.1 - May 21st, 2013
+	* Update grunt, dependencies, cli options & output message.
+	* Add 'keyframe' type at child node of keyframes.
+* 0.2.0 - May 20th, 2013
+	* Initial release of cssparser.js.
 
 ##To do list
 

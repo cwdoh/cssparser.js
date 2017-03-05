@@ -3,11 +3,10 @@ class QualifiedRule extends CSSObject {
         return 'QUALIFIED_RULE'
     }
 
-    toJSON() {
+    toSimpleJSON() {
         return {
-            type: this.getType(),
-            selectors: toJSON(this.get('selectors')),
-            value: toJSON(this.get('value'))
+            selectors: toSimple(this.get('selectors')),
+            declarations: toSimple(this.get('value'))
         }
     }
 
@@ -22,14 +21,11 @@ class Declaration extends CSSObject {
         return 'DECLARATION'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            property: toJSON(this.get('property')),
-            value:  toJSON(this.get('value')),
-            important: this.get('important', false),
-            ieOnlyHack: toJSON(this.get('ieOnlyHack', false))
-        }
+    toSimpleJSON() {
+        var json = {}
+        json[toSimple(this.get('property'))] = toSimple(this.get('value'))
+
+        return json
     }
 
     static create(property, value) {
@@ -44,11 +40,14 @@ class DeclarationList extends CSSObject {
         return 'DECLARATION_LIST'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: this.get('value').map((o) => toJSON(o))
-        }
+    toSimpleJSON() {
+        var json = {}
+        
+        toSimple(this.get('value')).map((o) => {
+            mixin(json, o)
+        })
+
+        return json
     }
 
     static create(value) {

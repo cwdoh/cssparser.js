@@ -1,37 +1,14 @@
-class Selector extends CSSObject {
-    getType() {
-        return 'SELECTOR'
-    }
-
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: toJSON(this.get('value')),
-            nextSelector: toJSON(this.get('nextSelector'))
-        }
-    }
-}
-
-class SelectorList extends Selector {
+class SelectorList extends CSSObject {
     getType() {
         return 'SELECTOR_LIST'
     }
 
-    add(rootSelector) {
-        if (!this.value) {
-            this.value = []
-        }
-
-        this.value.push(rootSelector)
-
-        return this
+    toDeepJSON() {
+        return this.toSimpleJSON()
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: this.get('value').map((o) => toJSON(o))
-        }
+    toSimpleJSON() {
+        return this.get('value').map((o) => toSimple(o))
     }
 
     static create(value) {
@@ -39,21 +16,23 @@ class SelectorList extends Selector {
     }
 }
 
-class RootSelector extends Selector {
+class Selector extends CSSObject {
     getType() {
-        return 'SELECTOR_ROOT'
+        return 'SELECTOR'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: toJSON(this.get('value'))
+    toDeepJSON() {
+        return this.toSimpleJSON()
+    }
+
+    toSimpleJSON() {
+        var selector = toSimple(this.get('value'))
+        var nextSelector = toSimple(this.get('nextSelector'))
+        if (nextSelector) {
+            selector += nextSelector
         }
-    }
 
-    static create(value) {
-        return new RootSelector()
-            .set('value', value)
+        return selector
     }
 }
 
@@ -66,13 +45,14 @@ class SelectorCombinator extends Selector {
         return 'UNKNOWN'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            relation: this.getRelation(),
-            value:  toJSON(this.get('value')),
-            nextSelector: toJSON(this.get('nextSelector'))
+    toSimpleJSON() {
+        // for beautify
+        var selector = ' ' + toSimple(this.get('value')) + ' '
+        var nextSelector = toSimple(this.get('nextSelector'))
+        if (nextSelector) {
+            selector += nextSelector
         }
+        return selector
     }
 
     static create(value) {
@@ -84,6 +64,16 @@ class SelectorCombinator extends Selector {
 class DescendantSelectorCombinator extends SelectorCombinator {
     getRelation() {
         return 'DESCEDANT'
+    }
+
+    toSimpleJSON() {
+        // for beautify
+        var selector = toSimple(this.get('value'))
+        var nextSelector = toSimple(this.get('nextSelector'))
+        if (nextSelector) {
+            selector += nextSelector
+        }
+        return selector
     }
 
     static create(value) {
@@ -174,6 +164,15 @@ class PseudoClassSelector extends Selector {
         return 'PSEUDO_CLASS_SELECTOR'
     }
 
+    toSimpleJSON() {
+        var selector = ':' + toSimple(this.get('value'))
+        var nextSelector = toSimple(this.get('nextSelector'))
+        if (nextSelector) {
+            selector += nextSelector
+        }
+        return selector
+    }
+
     static create(value) {
         return new PseudoClassSelector()
             .set('value', value)
@@ -185,6 +184,15 @@ class PseudoElementSelector extends Selector {
         return 'PSEUDO_ELEMENT_SELECTOR'
     }
 
+    toSimpleJSON() {
+        var selector = '::' + toSimple(this.get('value'))
+        var nextSelector = toSimple(this.get('nextSelector'))
+        if (nextSelector) {
+            selector += nextSelector
+        }
+        return selector
+    }
+
     static create(value) {
         return new PseudoElementSelector()
             .set('value', value)
@@ -194,6 +202,15 @@ class PseudoElementSelector extends Selector {
 class AttributeSelector extends Selector {
     getType() {
         return 'ATTRIBUTE_SELECTOR'
+    }
+
+    toSimpleJSON() {
+        var selector = '[' + toSimple(this.get('value')) + ']'
+        var nextSelector = toSimple(this.get('nextSelector'))
+        if (nextSelector) {
+            selector += nextSelector
+        }
+        return selector
     }
 
     static create(value) {

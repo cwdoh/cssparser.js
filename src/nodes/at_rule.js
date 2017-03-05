@@ -3,11 +3,10 @@ class AtRule extends CSSObject {
         return 'AT_RULE'
     }
 
-    toJSON() {
+    toSimpleJSON() {
         return {
-            type: this.getType(),
-            rule: toJSON(this.get('rule', null)),
-            value: toJSON(this.get('value', null))
+            type: '@' + toSimple(this.get('rule')),
+            value: toSimple(this.get('value'))
         }
     }
 
@@ -16,7 +15,9 @@ class AtRule extends CSSObject {
         var result = rule.match(regexp)
 
         if (result) {
-            this.set('rule', IdentVal.create(result[1]))
+            var identVal = IdentVal.create(result[1])
+            identVal.set('prefix', '@')
+            this.set('rule', identVal)
         }
 
         return this
@@ -30,26 +31,23 @@ class AtCharset extends AtRule {
 }
 
 class AtImport extends AtRule {
-    toJSON() {
-        var json = super.toJSON()
-        json.nextExpression = toJSON(this.get('nextExpression', null))
-
-        return json
+    toSimpleJSON() {
+        return mixin(super.toSimpleJSON(), {
+            mediaQuery: toSimple(this.get('nextExpression'))
+        })
     }
-
+    
     static create(rule) {
         return new AtImport().setRule(rule)
     }
 }
 
 class AtNamespace extends AtRule {
-    toJSON() {
-        var json = super.toJSON()
-        json.prefix = toJSON(this.get('prefix', null))
-
-        return json
+    toSimpleJSON() {
+        return mixin(super.toSimpleJSON(), {
+            prefix: toSimple(this.get('prefix'))
+        })
     }
-
     static create(rule) {
         return new AtNamespace().setRule(rule)
     }
@@ -62,11 +60,10 @@ class AtFontface extends AtRule {
 }
 
 class AtNestedRule extends AtRule {
-    toJSON() {
-        var json = super.toJSON()
-        json.nestedRules = toJSON(this.get('nestedRules', null))
-
-        return json
+    toSimpleJSON() {
+        return mixin(super.toSimpleJSON(), {
+            nestedRules: toSimple(this.get('nestedRules'))
+        })
     }
 }
 
@@ -77,12 +74,11 @@ class AtMedia extends AtNestedRule {
 }
 
 class AtKeyframes extends AtRule {
-    toJSON() {
-        var json = super.toJSON()
-
-        json.name = toJSON(this.get('name'))
-
-        return json
+    toSimpleJSON() {
+        return {
+            type: '@' + toSimple(this.get('rule')),
+            keyframes: toSimple(this.get('value'))
+        }
     }
 
     static create(rule) {
@@ -96,21 +92,13 @@ class AtKeyframesBlockList extends CSSObject {
         return 'KEYFRAME_BLOCK_LIST'
     }
 
-    add(block) {
-        if (!this.value) {
-            this.value = []
-        }
+    toSimpleJSON() {
+        var json = {}
+        toSimple(this.get('value')).map((o) => {
+            mixin(json, o)
+        })
 
-        this.value.push(block)
-
-        return this
-    }
-
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: this.get('value', []).map((o) => toJSON(o))
-        }
+        return json
     }
 
     static create() {
@@ -123,10 +111,10 @@ class AtKeyframesBlock extends CSSObject {
         return 'KEYFRAME_BLOCK'
     }
 
-    toJSON() {
-        var json = super.toJSON()
-        json.selector = toJSON(this.get('selector', null))
-
+    toSimpleJSON() {
+        var json = {}
+        json[toSimple(this.get('selector'))] = toSimple(this.get('value'))
+        
         return json
     }
 
@@ -137,14 +125,6 @@ class AtKeyframesBlock extends CSSObject {
 }
 
 class AtSupport extends AtNestedRule {
-    toJSON() {
-        var json = super.toJSON()
-        json.property = toJSON(this.get('property', null))
-        json.operator = toJSON(this.get('operator', null))
-
-        return json
-    }
-
     static create(rule) {
         return new AtSupport().setRule(rule)
     }
@@ -153,15 +133,6 @@ class AtSupport extends AtNestedRule {
 class AtSupportExpression extends CSSObject {
     getType(type) {
         return 'SUPPORT_EXPRESSION'
-    }
-
-    toJSON() {
-        var json = super.toJSON()
-        json.property = toJSON(this.get('property', null))
-        json.operator = toJSON(this.get('operator', null))
-        json.nextExpression = toJSON(this.get('nextExpression', null))
-
-        return json
     }
 
     static create(selector) {

@@ -1,23 +1,14 @@
-class StringVal extends CSSObject {
-    getType() {
-        return 'STRING'
-    }
-
-    static create(value) {
-        return new StringVal().set('value', value)
-    }
-}
-
 class PrimitiveVal extends CSSObject {
     getType() {
         return 'PRIMITIVE_VALUE'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: this.get('value')
-        }
+    toDeepJSON() {
+        return this.toSimpleJSON()
+    }
+
+    toSimpleJSON() {
+        return this.get('value')
     }
 }
 
@@ -27,7 +18,7 @@ class NumberVal extends PrimitiveVal {
     }
 
     static create(value) {
-        return new NumberVal().set('value', value)
+        return new NumberVal().set('value', parseFloat(value))
     }
 }
 
@@ -41,17 +32,25 @@ class HashVal extends PrimitiveVal {
     }
 }
 
-class PercentageVal extends PrimitiveVal {
+class UnitVal extends PrimitiveVal {
+    toSimpleJSON() {
+        return this.get('value') + this.get('unit', '')
+    }
+}
+
+class StringVal extends UnitVal {
     getType() {
-        return 'PERCENTAGE'
+        return 'STRING'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: toJSON(this.get('value')),
-            unit: toJSON(this.get('unit'))
-        }
+    static create(value) {
+        return new StringVal().set('value', value)
+    }
+}
+
+class PercentageVal extends UnitVal {
+    getType() {
+        return 'PERCENTAGE'
     }
 
     static create(value) {
@@ -63,17 +62,9 @@ class PercentageVal extends PrimitiveVal {
     }
 }
 
-class DimensionVal extends PrimitiveVal {
+class DimensionVal extends UnitVal {
     getType() {
         return 'DIMENSION'
-    }
-
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: toJSON(this.get('value')),
-            unit: toJSON(this.get('unit'))
-        }
     }
 
     static create(value) {
@@ -85,17 +76,17 @@ class DimensionVal extends PrimitiveVal {
     }
 }
 
-class IdentVal extends CSSObject {
+class IdentVal extends PrimitiveVal {
     getType() {
         return 'ID'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            vendorPrefix: toJSON(this.get('vendorPrefix', '')),
-            value: toJSON(this.get('value'))
-        }
+    toDeepJSON() {
+        return this.toSimpleJSON()
+    }
+
+    toSimpleJSON() {
+        return toSimple(this.get('vendorPrefix', '')) + toSimple(this.get('value'))
     }
 
     static create(value) {
@@ -107,17 +98,13 @@ class IdentVal extends CSSObject {
     }
 }
 
-class UrlVal extends CSSObject {
+class UrlVal extends PrimitiveVal {
     getType() {
         return 'URL'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            name: toJSON(this.get('name', null)),
-            value: toJSON(this.get('value', null))
-        }
+    toSimpleJSON() {
+        return toSimple(this.get('name')) + '(' + toSimple(this.get('value')) + ')'
     }
 
     static create(value) {
@@ -132,17 +119,16 @@ class UrlVal extends CSSObject {
     }
 }
 
-class FunctionVal extends CSSObject {
+class FunctionVal extends PrimitiveVal {
     getType() {
         return 'FUNCTION'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            name: toJSON(this.get('name')),
-            parameters:  toJSON(this.get('parameters'))
-        }
+    toSimpleJSON() {
+        return toSimple(this.get('name'))
+            + '('
+            + toSimple(this.get('parameters'))
+            + ')'
     }
 
     static create(name, parameters) {
@@ -152,26 +138,20 @@ class FunctionVal extends CSSObject {
     }
 }
 
-class SequenceVal extends CSSObject {
-    constructor() {
-        super()
-        this.value = new Array()
-    }
-
+class SequenceVal extends PrimitiveVal {
     getType() {
         return 'SEQUENCE'
     }
 
-    add(value) {
-        this.value.push(value)
-        return this
-    }
-
-    toJSON() {
+    toDeepJSON() {
         return {
             type: this.getType(),
-            value: this.get('value').map((o) => toJSON(o))
+            value: toSimple(this.get('value', []))
         }
+    }
+
+    toSimpleJSON() {
+        return toSimple(this.get('value', [])).join(' ')
     }
 
     static create(item) {

@@ -3,23 +3,12 @@ class MediaQueryList extends CSSObject {
         return 'MEDIA_QUERY_LIST'
     }
 
-    add(mediaQuery) {
-        if (!this.value) {
-            this.value = []
-        }
-
-        if (mediaQuery) {
-            this.value.push(mediaQuery)
-        }
-
-        return this
+    toDeepJSON() {
+        return this.toSimpleJSON()
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            value: this.get('value').map((o) => toJSON(o))
-        }
+    toSimpleJSON() {
+        return toSimple(this.get('value'))
     }
 
     static create() {
@@ -32,14 +21,25 @@ class MediaQuery extends CSSObject {
         return 'MEDIA_QUERY'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            mediaType: toJSON(this.get('mediaType', null)),
-            prefix: toJSON(this.get('prefix', null)),
-            nextExpression: toJSON(this.get('nextExpression', null))
-        }
+    toDeepJSON() {
+        return this.toSimpleJSON()
     }
+
+    toSimpleJSON() {
+        var json = toSimple(this.get('mediaType'))
+
+        var prefix = this.get('prefix')
+        if (prefix) {
+            json = toSimple(prefix) + ' ' + json
+        }
+        var nextExpression = this.get('nextExpression')
+        if (nextExpression) {
+            json += ' ' + toSimple(nextExpression)
+        }
+
+        return json
+    }
+
 
     static create() {
         return new MediaQuery()
@@ -51,13 +51,26 @@ class MediaQueryExpression extends CSSObject {
         return 'MEDIA_QUERY_EXPRESSION'
     }
 
-    toJSON() {
-        return {
-            type: this.getType(),
-            feature: toJSON(this.get('mediaFeature', null)),
-            value: toJSON(this.get('value', null)),
-            nextExpression: toJSON(this.get('nextExpression', null))
+    toDeepJSON() {
+        return this.toSimpleJSON()
+    }
+
+    toSimpleJSON() {
+        var expression = '(' + toSimple(this.get('mediaFeature'))
+
+        var value = toSimple(this.get('value'))
+        if (value) {
+            expression += ': ' + value
         }
+
+        expression += ')'
+
+        var nextExpression = this.get('nextExpression')
+        if (nextExpression) {
+            expression += ' ' + toSimple(nextExpression)
+        }
+
+        return expression
     }
 
     static create(feature, value) {

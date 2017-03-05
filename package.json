@@ -13,7 +13,7 @@
     "validation",
     "transform"
   ],
-  "version": "0.2.2",
+  "version": "0.9.0",
   "preferGlobal": true,
   "repository": {
     "type": "git",
@@ -31,23 +31,16 @@
   },
   "dependencies": {
     "colors": "^1.1.2",
-    "jison-lex": "^0.3.4",
     "lodash": "^4.17.4",
     "nomnom": ">= 1.5.x"
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",
     "babel-preset-env": "^1.1.10",
-    "grunt": "~0.4.x",
-    "grunt-contrib-clean": "~0.4.0",
-    "grunt-contrib-coffee": "~0.6.0",
-    "grunt-contrib-concat": "~0.1.2",
-    "grunt-contrib-copy": "~0.4.0",
-    "grunt-contrib-uglify": "~0.1.2",
-    "grunt-contrib-yuidoc": "~0.4.0",
     "gulp": "^3.9.1",
     "gulp-file-include": "^1.0.0",
-    "jison": ">= 0.4.4"
+    "jison": ">= 0.4.4",
+    "jison-lex": "^0.3.4"
   },
   "scripts": {
     "es6": "gulp merge-js && babel dist/js -d dist/babel",
@@ -55,11 +48,12 @@
     "build": "npm run es6 && npm run generate",
     "test-simple": "node lib/cli.js test/test.css -c -t simple",
     "test-deep": "node lib/cli.js test/test.css -c -t deep",
-    "test-atomic": "node lib/cli.js test/test.css -c -t deep",
+    "test-atomic": "node lib/cli.js test/test.css -c -t atomic",
     "test-all": "npm run test-simple && npm run test-deep && npm run test-atomic",
     "copy-web": "cp ./lib/cssparser.js ./demo/",
     "release": "npm run build && npm run copy-web",
-    "test": "npm run release && npm run test-all"
+    "test": "npm run release && npm run test-all",
+    "inspect": "node --inspect --debug-brk lib/cli.js test/test.css -c -t "
   },
   "homepage": "https://cwdoh.github.io/cssparser.js/",
   "optionalDependencies": {},
