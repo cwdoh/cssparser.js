@@ -117,10 +117,6 @@ Example is tested with rulesets of [http://css3please.com](http://css3please.com
 ####Type 'simple'
 
 ```javascript
-
-> cssparser@0.2.2 test-simple /Volumes/Working/private/cssparser.js
-> node lib/cli.js test/test.css -c -t simple
-
 [
     {
         "type": "@charset",
