@@ -33,49 +33,56 @@ If want generating parser, install 'jison' before it.
 
 First of all, you should install cssparser.
 
-	$ npm install cssparser
-	
-	or
-	
-	$ npm install cssparser -g
+```bash
+$ npm install cssparser
+```
+or
+```bash
+$ npm install cssparser -g
+```
 
 Then execute and you can generate JSON file from command-line.
 
-	$ cssparser cssFile
-	
-	or 
-	
-	$ cssparser cssFile -o output_file
-
+```bash
+$ cssparser cssFile
+```	
+or 
+```bash	
+$ cssparser cssFile -o output_file
+```
 
 ###from CommonJS Module
 
 You can generate javascript object from your javascript module.
 
-	// getting parser module
-	var cssparser = require("cssparser");
-	
-	// create new instance of Parser
-	var parser = new cssparser.Parser();
-	
-	// parse
-    var ast = parser.parse(raw)
+```javascript
+// getting parser module
+var cssparser = require("cssparser");
 
-    // getting json
-    var json = ast.toJSON(type)
+// create new instance of Parser
+var parser = new cssparser.Parser();
 
+// parse
+var ast = parser.parse(raw)
+
+// getting json
+var json = ast.toJSON(type)
+```
 
 ##Generating parser from source
 
 ###Getting jison & source
 
-	$ git clone https://github.com/cwdoh/cssparser.js.git
-	$ npm install
+```bash
+$ git clone https://github.com/cwdoh/cssparser.js.git
+$ npm install
+```
 
 ###Generating parser from source
 
-	$ npm run build
-
+```bash
+$ npm run build
+```
 
 ##JSON Structure
 
@@ -92,7 +99,9 @@ There are 3 types of JSON format.
 
 Example is tested with rulesets of [http://css3please.com](http://css3please.com)
 
-	cssparser example/test.css --console -i 4
+```bash
+cssparser example/test.css --console -i 4
+```
 
 ###Input
 
