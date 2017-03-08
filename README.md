@@ -394,7 +394,9 @@ cssparser example/test.css --console -i 4
 
 ##Change log
 
-* 0.9.0-alpha - March 5th, 2016
+* 0.9.1 - March 8th, 2017
+	* Added 'rule' type on the css style node when simple mode. 
+* 0.9.0 - March 5th, 2017
 	* Fully rewrited parser.
 	* Supports three modes such as simple, deep, atomic.
 		* Also, simple mode produced different results instead of the format of previous version.
