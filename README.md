@@ -109,14 +109,14 @@ cssparser example/test.css --console -i 4
 @charset 'utf-8';
 @import url("fineprint.css") print;
 @media screen {
-	* {
-	   position: absolute;
-	 }
+    * {
+       position: absolute;
+     }
 }
-
+ 
 .footer {
     position: fixed;
-    bottom: 0;
+    bottom: 0 !important;
     width: 1rem;
 }
 ```
@@ -145,6 +145,7 @@ cssparser example/test.css --console -i 4
         ],
         "nestedRules": [
             {
+                "type": "rule",
                 "selectors": [
                     "*"
                 ],
@@ -155,16 +156,18 @@ cssparser example/test.css --console -i 4
         ]
     },
     {
+        "type": "rule",
         "selectors": [
             ".footer"
         ],
         "declarations": {
             "position": "fixed",
-            "bottom": 0,
+            "bottom": "0 !important",
             "width": "1rem"
         }
     }
 ]
+
 ```
 
 ####Type 'deep'
@@ -224,7 +227,8 @@ cssparser example/test.css --console -i 4
                     {
                         "type": "DECLARATION",
                         "property": "bottom",
-                        "value": 0
+                        "value": 0,
+                        "important": true
                     },
                     {
                         "type": "DECLARATION",
@@ -239,6 +243,7 @@ cssparser example/test.css --console -i 4
         }
     ]
 }
+
 ```
 
 ####Type 'atomic'
@@ -362,7 +367,8 @@ cssparser example/test.css --console -i 4
                         "value": {
                             "type": "NUMBER",
                             "value": 0
-                        }
+                        },
+                        "important": true
                     },
                     {
                         "type": "DECLARATION",
