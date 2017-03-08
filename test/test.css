@@ -1,0 +1,45 @@
+@charset 'utf-8';
+
+@import 'custom.css';
+@import url("fineprint.css");
+@import url("fineprint.css") print;
+@import url("bluish.css") projection, tv;
+@import "common.css" screen, projection;
+@import url('landscape.css') screen and (orientation:landscape);
+
+@namespace "http://www.w3c.org";
+@namespace svg "http://www.w3c.org/svg";
+
+@media screen {
+	* {
+	   position: absolute;
+	 }
+
+	.box_shadow {
+	  -webkit-box-shadow: 0px 0px 4px 0px #ffffff; /* Android 2.3+, iOS 4.0.2-4.2, Safari 3-4 */
+			  box-shadow: 0px 0px 4px 0px #ffffff; /* Chrome 6+, Firefox 4+, IE 9+, iOS 5+, Opera 10.50+ */
+	}
+}
+
+@-webkit-keyframes myanim {
+  0%   { opacity: 0.0; }
+  50%  { opacity: 0.5; }
+  100% { opacity: 1.0; }
+}
+
+.matrix {
+  
+-webkit-transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
+-moz-transform: matrix(1.186,-0.069,0.102,1.036,16.595px,73.291px);
+-ms-transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
+-o-transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
+transform: matrix(1.186,-0.069,0.102,1.036,16.595,73.291);
+
+}
+
+@font-face {
+  font-family: 'WebFont';
+  src: url('myfont.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('myfont.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}
+  
