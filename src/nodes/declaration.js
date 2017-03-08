@@ -24,7 +24,11 @@ class Declaration extends CSSObject {
 
     toSimpleJSON() {
         var json = {}
-        json[toSimple(this.get('property'))] = toSimple(this.get('value'))
+        var value = toSimple(this.get('value'))
+        if (this.get('important', false)) {
+            value += ' !important'
+        }
+        json[toSimple(this.get('property'))] = value
 
         return json
     }

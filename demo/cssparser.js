@@ -1189,6 +1189,7 @@ var QualifiedRule = function (_CSSObject5) {
         key: 'toSimpleJSON',
         value: function toSimpleJSON() {
             return {
+                type: 'rule',
                 selectors: toSimple(this.get('selectors')),
                 declarations: toSimple(this.get('value'))
             };
@@ -1221,7 +1222,11 @@ var Declaration = function (_CSSObject6) {
         key: 'toSimpleJSON',
         value: function toSimpleJSON() {
             var json = {};
-            json[toSimple(this.get('property'))] = toSimple(this.get('value'));
+            var value = toSimple(this.get('value'));
+            if (this.get('important', false)) {
+                value += ' !important';
+            }
+            json[toSimple(this.get('property'))] = value;
 
             return json;
         }
