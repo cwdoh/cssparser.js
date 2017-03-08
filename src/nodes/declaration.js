@@ -5,6 +5,7 @@ class QualifiedRule extends CSSObject {
 
     toSimpleJSON() {
         return {
+            type: 'rule',
             selectors: toSimple(this.get('selectors')),
             declarations: toSimple(this.get('value'))
         }
