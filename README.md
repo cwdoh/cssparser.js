@@ -413,12 +413,3 @@ cssparser example/test.css --console -i 4
 	* Add 'keyframe' type at child node of keyframes.
 * 0.2.0 - May 20th, 2013
 	* Initial release of cssparser.js.
-
-##To do list
-
-* Parsing & generating options like simple JSON expression or more detailed.
-* Error recovery for input css.
-* Utilities
-	* Minify & optimize css.
-	* Auto-generate Cross-browsing stylesheets.
-
