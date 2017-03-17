@@ -32,7 +32,7 @@ class AtCharset extends AtRule {
 
 class AtImport extends AtRule {
     toSimpleJSON() {
-        return mixin(super.toSimpleJSON(), {
+        return joinValues(super.toSimpleJSON(), {
             mediaQuery: toSimple(this.get('nextExpression'))
         })
     }
@@ -44,7 +44,7 @@ class AtImport extends AtRule {
 
 class AtNamespace extends AtRule {
     toSimpleJSON() {
-        return mixin(super.toSimpleJSON(), {
+        return joinValues(super.toSimpleJSON(), {
             prefix: toSimple(this.get('prefix'))
         })
     }
@@ -61,7 +61,7 @@ class AtFontface extends AtRule {
 
 class AtNestedRule extends AtRule {
     toSimpleJSON() {
-        return mixin(super.toSimpleJSON(), {
+        return joinValues(super.toSimpleJSON(), {
             nestedRules: toSimple(this.get('nestedRules'))
         })
     }
@@ -96,7 +96,7 @@ class AtKeyframesBlockList extends CSSObject {
     toSimpleJSON() {
         var json = {}
         toSimple(this.get('value')).map((o) => {
-            mixin(json, o)
+            joinValues(json, o)
         })
 
         return json
