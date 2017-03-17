@@ -2,15 +2,23 @@ class CSSObject {
     constructor() {
         this._props_ = {}
     }
-    
-    options = {
-        commaDelimiter: ', ',
+
+    static _options = {
+        commaDelimiter: ',',
         whitespaceDelimiter: ' '
     }
 
-    setOptions(options) {
-        this.options.commaDelimiter = options.commaDelimiter || this.options.commaDelimiter
-        this.options.whitespaceDelimiter = options.whitespaceDelimiter || this.options.whitespaceDelimiter
+    setOptions(customOptions) {
+        CSSObject._options = mixin(this.options, customOptions)
+    }
+
+    get options() {
+        return CSSObject._options
+    }
+
+    set options(customOptions) {
+        console.warn('For beautify AST output, `setOptions()` method would be recommended instead of assigning directly.')
+        this.setOptions(customOptions)
     }
 
     getType(type) {

@@ -49,7 +49,7 @@ class DeclarationList extends CSSObject {
         var json = {}
         
         toSimple(this.get('value')).map((o) => {
-            mixin(json, o)
+            joinValues(json, o)
         })
 
         return json
