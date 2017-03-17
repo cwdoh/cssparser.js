@@ -45,7 +45,7 @@
     "uglify-js": "^2.8.13"
   },
   "scripts": {
-    "clean": "rm -dfr dist",
+    "clean": "rm -fr dist",
     "merge-js": "gulp merge-js",
     "babel": "babel dist/js -d dist/babel",
     "es6": "npm run merge-js && npm run babel",
