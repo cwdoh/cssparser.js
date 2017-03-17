@@ -26,7 +26,7 @@ const join = function(o, delimiter) {
     return o
 }
 
-const mixin = (target, source) => {
+const joinValues = (target, source) => {
     for (var prop in source) {
         if (prop in target) {
             target[prop] = concat(target[prop], source[prop])
@@ -36,6 +36,20 @@ const mixin = (target, source) => {
     }
 
     return target
+}
+
+const mixin = (target, source) => {
+    var result = {}
+
+    for (var prop in target) {
+        result[prop] = target[prop]
+    }
+
+    for (var prop in source) {
+        result[prop] = source[prop]
+    }
+
+    return result
 }
 
 const isArray = (o) => Object.prototype.toString.call(o) === '[object Array]'
