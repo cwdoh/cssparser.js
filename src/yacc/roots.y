@@ -7,6 +7,10 @@ stylesheet
     {
       return $1
     }
+  | EOF
+    {
+      return StyleSheet.create()
+    }
   ;
 
 StylesheetList

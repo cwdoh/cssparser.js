@@ -127,7 +127,7 @@ class FunctionVal extends PrimitiveVal {
     toSimpleJSON() {
         return toSimple(this.get('name'))
             + '('
-            + toSimple(this.get('parameters'))
+            + join(toSimple(this.get('parameters')), this.options.commaDelimiter)
             + ')'
     }
 
@@ -151,7 +151,7 @@ class SequenceVal extends PrimitiveVal {
     }
 
     toSimpleJSON() {
-        return toSimple(this.get('value', [])).join(' ')
+        return toSimple(this.get('value', [])).join(this.options.whitespaceDelimiter)
     }
 
     static create(item) {

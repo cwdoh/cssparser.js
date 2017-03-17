@@ -18,6 +18,14 @@ const stripFalsy = (o) => {
     return o
 }
 
+const join = function(o, delimiter) {
+    if (isArray(o)) {
+        return o.join(delimiter)
+    }
+
+    return o
+}
+
 const mixin = (target, source) => {
     for (var prop in source) {
         if (prop in target) {

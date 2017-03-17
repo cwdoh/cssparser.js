@@ -784,6 +784,31 @@ var StyleSheet = function (_CSSObject) {
         value: function getType(type) {
             return 'STYLESHEET';
         }
+    }, {
+        key: 'toAtomicJSON',
+        value: function toAtomicJSON() {
+            var json = _get(StyleSheet.prototype.__proto__ || Object.getPrototypeOf(StyleSheet.prototype), 'toAtomicJSON', this).call(this);
+            json.level = 'atomic';
+
+            return json;
+        }
+    }, {
+        key: 'toDeepJSON',
+        value: function toDeepJSON() {
+            var json = _get(StyleSheet.prototype.__proto__ || Object.getPrototypeOf(StyleSheet.prototype), 'toDeepJSON', this).call(this);
+            json.level = 'deep';
+
+            return json;
+        }
+    }, {
+        key: 'toSimpileJSON',
+        value: function toSimpileJSON() {
+            return {
+                type: 'stylesheet',
+                level: 'simple',
+                value: _get(StyleSheet.prototype.__proto__ || Object.getPrototypeOf(StyleSheet.prototype), 'toSimpileJSON', this).call(this)
+            };
+        }
     }], [{
         key: 'create',
         value: function create() {
