@@ -8,16 +8,16 @@ cssparser.js
 
 cssparser.js is a parser that generates json matched with source css structure.
 
-##Description
+## Description
 
 * License: MIT license - [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php)
 * Author : Chang W. Doh
 
-##Demo
+## Demo
 
 * [http://cwdoh.github.io/cssparser.js/demo/CSS_stringify.html](//cwdoh.github.io/cssparser.js/demo/CSS_stringify.html)
 
-##Dependency
+## Dependency
 
 Just want to use cssparser.js? Nothing needed.
 
@@ -26,9 +26,9 @@ If want generating parser, install 'jison' before it.
 * Jison - [http://jison.org](http://jison.org )
 
 
-##Usage
+## Usage
 
-###from Command-line
+### from Command-line
 
 
 First of all, you should install cssparser.
@@ -51,7 +51,7 @@ or
 $ cssparser cssFile -o output_file
 ```
 
-###from CommonJS Module
+### from CommonJS Module
 
 You can generate javascript object from your javascript module.
 
@@ -69,22 +69,22 @@ var ast = parser.parse(raw)
 var json = ast.toJSON(type)
 ```
 
-##Generating parser from source
+## Generating parser from source
 
-###Getting jison & source
+### Getting jison & source
 
 ```bash
 $ git clone https://github.com/cwdoh/cssparser.js.git
 $ npm install
 ```
 
-###Generating parser from source
+### Generating parser from source
 
 ```bash
 $ npm run build
 ```
 
-##JSON Structure
+## JSON Structure
 
 There are 3 types of JSON format.
 
@@ -95,7 +95,7 @@ There are 3 types of JSON format.
 * atomic - most detailed. 'atomic' JSON has all pieces of each key & values in CSS.
 	* e.g. length has numeric value & its unit like "100px" -> { "value": 100, "unit": "px" }
 
-##Example
+## Example
 
 Example is tested with rulesets of [http://css3please.com](http://css3please.com)
 
@@ -103,7 +103,7 @@ Example is tested with rulesets of [http://css3please.com](http://css3please.com
 cssparser example/test.css --console -i 4
 ```
 
-###Input
+### Input
 
 ```css
 @charset 'utf-8';
@@ -121,9 +121,9 @@ cssparser example/test.css --console -i 4
 }
 ```
 
-###JSON Output
+### JSON Output
 
-####Type 'simple'
+#### Type 'simple'
 
 ```javascript
 [
@@ -246,7 +246,7 @@ cssparser example/test.css --console -i 4
 
 ```
 
-####Type 'atomic'
+#### Type 'atomic'
 
 ```javascript
 {
@@ -398,8 +398,14 @@ cssparser example/test.css --console -i 4
 }
 ```
 
-##Change log
+## Change log
 
+* 0.9.2 - March 17th, 2017
+	* Now supports beautify delimiter option for simple & deep type.
+    * Showing version will be run lower-case 'v' instead 'V'.
+    * Fixed missing keyframe name and added type & level descriptions for simple type.
+    * Fixed EOF error case.
+    * Added '-b' option for beautify delimiters.
 * 0.9.1 - March 8th, 2017
 	* Added 'rule' type on the css style node when simple mode. 
 * 0.9.0 - March 5th, 2017

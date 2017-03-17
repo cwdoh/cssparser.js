@@ -13,7 +13,7 @@
     "validation",
     "transform"
   ],
-  "version": "0.9.1",
+  "version": "0.9.2",
   "preferGlobal": true,
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "babel-cli": "latest",
-    "babel-plugin-transform-class-properties": "^6.23.0",
+    "babel-plugin-transform-class-properties": "latest",
     "babel-preset-env": "latest",
     "gulp": "^3.9.1",
     "gulp-file-include": "^1.0.0",
