@@ -2,6 +2,16 @@ class CSSObject {
     constructor() {
         this._props_ = {}
     }
+    
+    options = {
+        commaDelimiter: ', ',
+        whitespaceDelimiter: ' '
+    }
+
+    setOptions(options) {
+        this.options.commaDelimiter = options.commaDelimiter || this.options.commaDelimiter
+        this.options.whitespaceDelimiter = options.whitespaceDelimiter || this.options.whitespaceDelimiter
+    }
 
     getType(type) {
         return 'OBJECT'
@@ -88,6 +98,28 @@ class StyleSheet extends CSSObject {
         return 'STYLESHEET'
     }
 
+    toAtomicJSON() {
+        var json = super.toAtomicJSON()
+        json.level = 'atomic'
+
+        return json
+    }
+
+    toDeepJSON() {
+        var json = super.toDeepJSON()
+        json.level = 'deep'
+
+        return json
+    }
+
+    toSimpleJSON() {
+        return {
+            type: 'stylesheet',
+            level: 'simple',
+            value: toSimple(this.get('value', []))
+        }
+    }
+ 
     static create() {
         return new StyleSheet()
     }

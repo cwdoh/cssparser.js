@@ -77,6 +77,7 @@ class AtKeyframes extends AtRule {
     toSimpleJSON() {
         return {
             type: '@' + toSimple(this.get('rule')),
+            name: toSimple(this.get('name')),
             keyframes: toSimple(this.get('value'))
         }
     }
