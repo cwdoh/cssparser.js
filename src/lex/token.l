@@ -80,9 +80,11 @@
 \|									{return _token('VERTICAL_LINE ');}
 \~									{return _token('TILDE');}
 
-{operators}{identchar}+              {return _token('GENERAL_IDENT');}
-{media_type}{identchar}+             {return _token('GENERAL_IDENT');}
-{media_feature}{identchar}+          {return _token('GENERAL_IDENT');}
+[_]                                 {return _token('UNDERSCORE');}
+
+{operators}{identchar}+             {return _token('GENERAL_IDENT');}
+{media_type}{identchar}+            {return _token('GENERAL_IDENT');}
+{media_feature}{identchar}+         {return _token('GENERAL_IDENT');}
 
 /* reserved keywords */
 {operator_and}                      {return _token('OPERATOR_AND');}
