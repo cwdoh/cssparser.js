@@ -159,11 +159,12 @@ class Expression extends CSSObject {
     }
 
     toSimpleJSON() {
-        return
-            toSimple(this.get('lhs'))
-            // for beautify
-            + ' ' + toSimple(this.get('operator')) + ' '
-            + toSimple(this.get('rhs'))
+        var lhs = toSimple(this.get('lhs'))
+        var operator = toSimple(this.get('operator'))
+        var rhs = toSimple(this.get('rhs'))
+
+        // for beautifying, added some spaces bewteen nodes
+        return lhs + ' ' + operator + ' ' + rhs
     }
 
     static create(operator, lhs, rhs) {

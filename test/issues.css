@@ -1,0 +1,11 @@
+/* issue #20 */
+.fl { float: left; _display: inline; }
+
+/* issue #21 */
+button, html [type="button"], [type="reset"], [type="submit"] {
+  -webkit-appearance: button;
+}
+
+/* issue #22 */
+.w-two-thirds-l { width: calc( 100% / 1.5 ); }
+

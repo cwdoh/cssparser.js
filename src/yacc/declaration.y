@@ -4,8 +4,6 @@
 
 PropertyName
   : IdentVal
-  | ASTERISK IdentVal                   ->  $2.set('asteriskHack', true)
-  | ASTERISK_WITH_WHITESPACE IdentVal   ->  $2.set('asteriskHack', true)
   ;
 PropertyValue
   : PropertyValueComponent
