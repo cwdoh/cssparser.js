@@ -25,10 +25,21 @@ class Declaration extends CSSObject {
     toSimpleJSON() {
         var json = {}
         var value = toSimple(this.get('value'))
+        if (this.get('backslashHack', false)) {
+            value += '\\9'
+        }
         if (this.get('important', false)) {
             value += ' !important'
         }
-        json[toSimple(this.get('property'))] = value
+
+        var property = toSimple(this.get('property'))
+        if (this.get('asteriskHack', false)) {
+            property = '*' + property
+        }
+        if (this.get('underscoreHack', false)) {
+            property = '_' + property
+        }
+        json[property] = value
 
         return json
     }
