@@ -400,6 +400,9 @@ cssparser example/test.css --console -i 4
 
 ## Change log
 
+* 0.9.3 - July 20th, 2017
+	* Fixed producing undefined for expression when using simple mode.
+    * Supported IE hacks including `_PROPERTY` pattern.
 * 0.9.2 - March 17th, 2017
 	* Now supports beautify delimiter option for simple & deep type.
     * Showing version will be run lower-case 'v' instead 'V'.
