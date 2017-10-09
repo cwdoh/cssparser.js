@@ -400,6 +400,8 @@ cssparser example/test.css --console -i 4
 
 ## Change log
 
+* 0.9.4 - October 10th, 2017
+    * Fixed missing space after attribute selector by #23, thanks @kauffecup
 * 0.9.3 - July 20th, 2017
 	* Fixed producing undefined for expression when using simple mode.
     * Supported IE hacks including `_PROPERTY` pattern.
