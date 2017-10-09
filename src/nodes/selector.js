@@ -208,7 +208,7 @@ class AttributeSelector extends Selector {
         var selector = '[' + toSimple(this.get('value')) + ']'
         var nextSelector = toSimple(this.get('nextSelector'))
         if (nextSelector) {
-            selector += nextSelector
+            selector += ' ' + nextSelector
         }
         return selector
     }
