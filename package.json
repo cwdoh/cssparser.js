@@ -45,6 +45,7 @@
     "uglify-js": "^2.8.13"
   },
   "scripts": {
+    "docs": "flybook docs --outdir=site",
     "clean": "rm -fr dist",
     "merge-js": "gulp merge-js",
     "babel": "babel dist/js -d dist/babel",
