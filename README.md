@@ -170,7 +170,7 @@ cssparser example/test.css --console -i 4
 
 ```
 
-####Type 'deep'
+#### Type 'deep'
 
 ```javascript
 {
