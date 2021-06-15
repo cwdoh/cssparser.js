@@ -90,7 +90,7 @@ class IdentVal extends PrimitiveVal {
     }
 
     static create(value) {
-        var result = value.match(/([-](webkit|moz|o|ms)[-])?([0-9a-zA-Z-]*)/)
+        var result = value.match(/([-](webkit|moz|o|ms)[-])?([0-9a-zA-Z-_]*)/)
 
         return new IdentVal()
             .set('vendorPrefix', result[1])
